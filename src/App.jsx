@@ -4,6 +4,36 @@ import PatternsTab from "./PatternsTab.jsx";
 import { fetchCommodityPrices, classifyText } from "./DataService.jsx";
 import { COLORS } from "./theme.js";
 
+const LIVE_URL = "https://roguegringo.github.io/IntelBrief-Hormuz-Iran/";
+
+function SourceVerifyLink({ label }) {
+  return (
+    <div style={{
+      marginTop: 28, paddingTop: 16, borderTop: `1px solid ${COLORS.border}`,
+      display: "flex", alignItems: "center", gap: 8,
+    }}>
+      <span style={{
+        width: 6, height: 6, borderRadius: "50%", background: COLORS.green,
+        animation: "pulse 2s infinite", flexShrink: 0,
+      }} />
+      <a
+        href={LIVE_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{
+          fontSize: 11, color: COLORS.blue, textDecoration: "none",
+          letterSpacing: 0.3,
+        }}
+      >
+        {label || "Verify live feed"} →
+      </a>
+      <span style={{ fontSize: 10, color: COLORS.textMuted, marginLeft: 4 }}>
+        Real-time data at GitHub Pages deployment
+      </span>
+    </div>
+  );
+}
+
 // ─── SIGNAL MONITOR DATA ───────────────────────────────────
 const SIGNALS = [
   { id: "pni", category: "kernel", name: "P&I Club Coverage", value: "3/12 active", numeric: 3, unit: "/12", severity: "critical", trend: "stable", jitter: 0 },
@@ -374,6 +404,7 @@ function ThesisTab() {
           <strong style={{ color: COLORS.gold }}> "Are independent systems all telling me the same thing?"</strong>
         </p>
       </div>
+      <SourceVerifyLink label="Verify live thesis data" />
     </div>
   );
 }
@@ -552,6 +583,7 @@ function NodesTab() {
           )}
         </div>
       ))}
+      <SourceVerifyLink label="Verify live tracking nodes" />
     </div>
   );
 }
@@ -751,6 +783,7 @@ function PortfolioTab() {
           </div>
         ))}
       </div>
+      <SourceVerifyLink label="Verify live portfolio data" />
     </div>
   );
 }
@@ -934,6 +967,7 @@ function PlaybookTab() {
           the difference between seeing clearly and not seeing at all is the entire game.
         </p>
       </div>
+      <SourceVerifyLink label="Verify live effect chains" />
     </div>
   );
 }
@@ -1411,6 +1445,7 @@ function SignalMonitorTab() {
           </div>
         )}
       </div>
+      <SourceVerifyLink label="Verify live signal monitor" />
     </div>
   );
 }
