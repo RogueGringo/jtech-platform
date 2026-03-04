@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { COLORS } from "./theme.js";
 
+const LIVE_URL = "https://roguegringo.github.io/IntelBrief-Hormuz-Iran/";
+
 // Simple seeded PRNG (mulberry32) — makes transit data deterministic across reloads.
 function makePRNG(seed) {
   let s = seed >>> 0;
@@ -737,6 +739,23 @@ export default function PatternsTab() {
             The physical world had already told the story.
           </p>
         </div>
+      </div>
+      <div style={{
+        marginTop: 28, paddingTop: 16, borderTop: `1px solid ${COLORS.border}`,
+        display: "flex", alignItems: "center", gap: 8,
+      }}>
+        <span style={{
+          width: 6, height: 6, borderRadius: "50%", background: COLORS.green,
+          animation: "pulse 2s infinite", flexShrink: 0,
+        }} />
+        <a href={LIVE_URL} target="_blank" rel="noopener noreferrer" style={{
+          fontSize: 11, color: COLORS.blue, textDecoration: "none", letterSpacing: 0.3,
+        }}>
+          Verify live patterns data →
+        </a>
+        <span style={{ fontSize: 10, color: COLORS.textMuted, marginLeft: 4 }}>
+          Real-time data at GitHub Pages deployment
+        </span>
       </div>
     </div>
   );
