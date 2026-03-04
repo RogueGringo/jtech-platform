@@ -1,26 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-
-const COLORS = {
-  bg: "#0a0c10",
-  surface: "#12151c",
-  surfaceHover: "#1a1e28",
-  border: "#1e2330",
-  borderActive: "#d4a843",
-  gold: "#d4a843",
-  goldDim: "#8a6e2f",
-  goldBright: "#f0c95a",
-  red: "#e04040",
-  redDim: "#8b2020",
-  green: "#3dba6f",
-  greenDim: "#1d6b3a",
-  blue: "#4a8fd4",
-  blueDim: "#2a5580",
-  text: "#e8e4dc",
-  textDim: "#8a8678",
-  textMuted: "#5a5850",
-  orange: "#e08840",
-  purple: "#9070d0",
-};
+import LiveFeedTab from "./LiveFeedTab.jsx";
+import PatternsTab from "./PatternsTab.jsx";
+import { fetchCommodityPrices, classifyText } from "./DataService.jsx";
+import { COLORS } from "./theme.js";
 
 // ─── SIGNAL MONITOR DATA ───────────────────────────────────
 const SIGNALS = [
@@ -70,32 +52,16 @@ const CATEGORY_META = {
   domestic: { label: "DOMESTIC SUPPLY", color: COLORS.purple },
 };
 
-const EFFECT_KEYWORDS = [
-  "transit", "ais", "insurance", "p&i", "coverage", "vlcc", "freight",
-  "force majeure", "spr", "drawdown", "rig count", "duc", "backwardation",
-  "pipeline", "bpd", "production", "inventory", "withdrawn", "suspended",
-  "collapsed", "stranded", "utilization", "capacity", "barrels", "tanker",
-  "vessel", "rates", "premium", "reinsurance", "spread", "curve", "netback",
-  "breakeven", "dolomite", "overpressured", "wellbore", "measured", "binary",
-];
-
-const EVENT_KEYWORDS = [
-  "announced", "predicted", "analysts say", "expected", "could", "might",
-  "sources say", "reportedly", "sentiment", "fears", "hopes", "rally",
-  "tumble", "surge", "plunge", "breaking", "rumor", "speculation",
-  "believes", "opinion", "according to", "may", "possibly", "likely",
-  "forecast", "projected", "risk of", "warns", "caution", "concerned",
-  "worried", "optimistic", "pessimistic", "bullish", "bearish", "mood",
-];
-
 // ─── HEADER ────────────────────────────────────────────────
 function Header({ activeTab, setActiveTab }) {
   const tabs = [
     { id: "thesis", label: "THE THESIS" },
     { id: "nodes", label: "TRACKING NODES" },
+    { id: "patterns", label: "PATTERNS OF LIFE" },
     { id: "portfolio", label: "PORTFOLIO MAP" },
     { id: "playbook", label: "EFFECT CHAINS" },
     { id: "monitor", label: "SIGNAL MONITOR" },
+    { id: "feed", label: "LIVE FEED" },
   ];
   return (
     <div style={{ borderBottom: `1px solid ${COLORS.border}`, padding: "24px 32px 0" }}>
@@ -104,7 +70,16 @@ function Header({ activeTab, setActiveTab }) {
           VALOR ENERGY PARTNERS
         </span>
         <span style={{ fontSize: 11, color: COLORS.textMuted, letterSpacing: 3, textTransform: "uppercase" }}>
-          Strategic Intelligence Brief · March 2026
+          Strategic Intelligence Brief · Live
+        </span>
+        <span style={{
+          display: "inline-flex", alignItems: "center", gap: 4,
+          fontSize: 9, letterSpacing: 1, padding: "2px 8px", borderRadius: 3,
+          background: `${COLORS.green}15`, color: COLORS.green, fontWeight: 700,
+          marginLeft: "auto",
+        }}>
+          <span style={{ width: 5, height: 5, borderRadius: "50%", background: COLORS.green, animation: "pulse 2s infinite" }} />
+          CONTINUOUS UPDATE
         </span>
       </div>
       <p style={{ fontSize: 13, color: COLORS.textDim, margin: "4px 0 16px", maxWidth: 720, lineHeight: 1.5 }}>
@@ -966,12 +941,14 @@ function PlaybookTab() {
 // ─── SIGNAL MONITOR TAB ────────────────────────────────────
 function SignalMonitorTab() {
   const [signals, setSignals] = useState(() =>
-    SIGNALS.map(s => ({ ...s, lastUpdate: new Date() }))
+    SIGNALS.map(s => ({ ...s, lastUpdate: new Date(), dataSource: "scenario" }))
   );
   const [filter, setFilter] = useState({ severity: "all", category: "all" });
   const [analyzerText, setAnalyzerText] = useState("");
   const [analysisResult, setAnalysisResult] = useState(null);
   const [now, setNow] = useState(Date.now());
+  const [priceData, setPriceData] = useState(null);
+  const [priceStatus, setPriceStatus] = useState("loading");
 
   // Tick every second so timestamps stay current
   useEffect(() => {
@@ -979,11 +956,55 @@ function SignalMonitorTab() {
     return () => clearInterval(timerId);
   }, []);
 
-  // Simulated real-time updates
+  // Fetch real commodity prices and overlay onto signals
+  useEffect(() => {
+    let cancelled = false;
+    async function fetchPrices() {
+      try {
+        const data = await fetchCommodityPrices();
+        if (cancelled) return;
+        setPriceData(data);
+        setPriceStatus(data.source);
+
+        if (data.source === "live" || data.source === "cached") {
+          setSignals(prev => prev.map(s => {
+            const priceInfo = data.prices[s.id];
+            if (!priceInfo || priceInfo.price === undefined) return s;
+            const newNumeric = priceInfo.price;
+            // Only brent, wti, ovx, spread, kcposted reach here (all price signals)
+            let formatted;
+            if (s.unit === "/bbl" || s.id === "spread") formatted = "$" + newNumeric.toFixed(2);
+            else if (s.unit === "%") formatted = Math.round(newNumeric) + "%";
+            else formatted = newNumeric.toFixed(1);
+            const newSeverity = computeSeverity(s.id, newNumeric, s.severity);
+            return {
+              ...s,
+              numeric: newNumeric,
+              value: formatted,
+              severity: newSeverity,
+              lastUpdate: new Date(),
+              dataSource: priceInfo.source === "live" ? "live" : "derived",
+            };
+          }));
+        }
+      } catch {
+        if (!cancelled) setPriceStatus("error");
+      }
+    }
+    fetchPrices();
+    const interval = setInterval(fetchPrices, 2 * 60 * 1000); // refresh every 2 min
+    return () => { cancelled = true; clearInterval(interval); };
+  }, []);
+
+  // Simulated updates for signals without live data
   useEffect(() => {
     const interval = setInterval(() => {
       setSignals(prev => prev.map(s => {
-        if (!s.jitter || !s.numeric) return { ...s, lastUpdate: new Date() };
+        // Skip signals that have live data — don't add jitter to real numbers
+        if (s.dataSource === "live" || s.dataSource === "derived") {
+          return { ...s, lastUpdate: new Date() };
+        }
+        if (!s.jitter || s.numeric == null) return { ...s, lastUpdate: new Date() };
         const delta = (Math.random() - 0.45) * s.jitter;
         const newNumeric = Math.max(0, s.numeric + delta);
         let formatted;
@@ -1014,31 +1035,8 @@ function SignalMonitorTab() {
   // Semantic analyzer
   const analyzeText = useCallback(() => {
     if (!analyzerText.trim()) return;
-    const lower = analyzerText.toLowerCase();
-    const effectHits = EFFECT_KEYWORDS.filter(k => lower.includes(k));
-    const eventHits = EVENT_KEYWORDS.filter(k => lower.includes(k));
-    const totalHits = effectHits.length + eventHits.length;
-    const score = totalHits > 0 ? (effectHits.length - eventHits.length) / totalHits : 0;
-
-    // Map to effect chains
-    const chainMap = [];
-    const insuranceTerms = ["insurance", "p&i", "coverage", "withdrawn", "reinsurance", "premium"];
-    const physicalTerms = ["transit", "ais", "tanker", "vessel", "stranded", "vlcc", "freight", "pipeline"];
-    const priceTerms = ["brent", "wti", "spread", "backwardation", "curve", "netback", "breakeven", "ovx"];
-    const supplyTerms = ["rig count", "duc", "production", "bpd", "capacity", "frac"];
-    if (insuranceTerms.some(t => lower.includes(t))) chainMap.push("Maritime Insurance Cascade");
-    if (physicalTerms.some(t => lower.includes(t))) chainMap.push("Physical Flow Cascade");
-    if (priceTerms.some(t => lower.includes(t))) chainMap.push("Price Architecture Cascade");
-    if (supplyTerms.some(t => lower.includes(t))) chainMap.push("Supply Constraint Cascade");
-
-    setAnalysisResult({
-      classification: score > 0.2 ? "EFFECT" : score < -0.2 ? "EVENT" : "MIXED",
-      score,
-      effectHits,
-      eventHits,
-      chainMap,
-      confidence: totalHits > 0 ? Math.min(100, Math.round((totalHits / 5) * 100)) : 0,
-    });
+    const result = classifyText(analyzerText);
+    setAnalysisResult(result);
   }, [analyzerText]);
 
   const severityColor = (sev) =>
@@ -1056,6 +1054,9 @@ function SignalMonitorTab() {
   const regimeLabel = coherenceScore >= 75 ? "CRISIS REGIME" : coherenceScore >= 50 ? "TRANSITION" : "STABLE";
   const regimeColor = coherenceScore >= 75 ? COLORS.red : coherenceScore >= 50 ? COLORS.orange : COLORS.green;
 
+  const liveSignalCount = signals.filter(s => s.dataSource === "live" || s.dataSource === "derived").length;
+  const scenarioSignalCount = signals.length - liveSignalCount;
+
   return (
     <div style={{ padding: "32px", maxWidth: 1200 }}>
       {/* ── SYSTEM STATUS HEADER ── */}
@@ -1068,23 +1069,49 @@ function SignalMonitorTab() {
             Signal Monitor
           </h2>
           <p style={{ fontSize: 13, color: COLORS.textDim, margin: 0, lineHeight: 1.5 }}>
-            Real-time condition:state tracking across all effect-indicators. Signals update continuously.
+            Condition:state tracking across all effect-indicators. Price signals update from live market data.
             Coherence measures whether independent indicators agree — consolidation indicates structural shift.
           </p>
         </div>
-        <div style={{
-          display: "flex", alignItems: "center", gap: 12,
-          padding: "12px 20px", borderRadius: 8,
-          background: `${regimeColor}15`, border: `1px solid ${regimeColor}40`,
-        }}>
+        <div style={{ display: "flex", gap: 10 }}>
+          {/* Data source indicator */}
           <div style={{
-            width: 10, height: 10, borderRadius: "50%", background: regimeColor,
-            boxShadow: `0 0 8px ${regimeColor}80`,
-            animation: "pulse 2s infinite",
-          }} />
-          <div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: regimeColor, letterSpacing: 1.5 }}>{regimeLabel}</div>
-            <div style={{ fontSize: 10, color: COLORS.textDim }}>System State</div>
+            padding: "10px 14px", borderRadius: 8, textAlign: "center",
+            background: `${priceStatus === "live" ? COLORS.green : priceStatus === "cached" ? COLORS.blue : COLORS.orange}10`,
+            border: `1px solid ${priceStatus === "live" ? COLORS.green : priceStatus === "cached" ? COLORS.blue : COLORS.orange}30`,
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 5, justifyContent: "center", marginBottom: 3 }}>
+              <div style={{
+                width: 6, height: 6, borderRadius: "50%",
+                background: priceStatus === "live" ? COLORS.green : priceStatus === "cached" ? COLORS.blue : COLORS.orange,
+                animation: priceStatus === "live" ? "pulse 2s infinite" : "none",
+              }} />
+              <span style={{
+                fontSize: 9, fontWeight: 700, letterSpacing: 1,
+                color: priceStatus === "live" ? COLORS.green : priceStatus === "cached" ? COLORS.blue : COLORS.orange,
+              }}>
+                {priceStatus === "live" ? "LIVE DATA" : priceStatus === "cached" ? "CACHED" : priceStatus === "loading" ? "FETCHING" : "SCENARIO"}
+              </span>
+            </div>
+            <div style={{ fontSize: 9, color: COLORS.textMuted }}>
+              {liveSignalCount} live · {scenarioSignalCount} scenario
+            </div>
+          </div>
+          {/* Regime badge */}
+          <div style={{
+            display: "flex", alignItems: "center", gap: 12,
+            padding: "12px 20px", borderRadius: 8,
+            background: `${regimeColor}15`, border: `1px solid ${regimeColor}40`,
+          }}>
+            <div style={{
+              width: 10, height: 10, borderRadius: "50%", background: regimeColor,
+              boxShadow: `0 0 8px ${regimeColor}80`,
+              animation: "pulse 2s infinite",
+            }} />
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: regimeColor, letterSpacing: 1.5 }}>{regimeLabel}</div>
+              <div style={{ fontSize: 10, color: COLORS.textDim }}>System State</div>
+            </div>
           </div>
         </div>
       </div>
@@ -1206,7 +1233,6 @@ function SignalMonitorTab() {
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
           {filteredSignals.map(s => {
-            const catMeta = CATEGORY_META[s.category];
             return (
               <div key={s.id} style={{
                 padding: "14px 16px", borderRadius: 8,
@@ -1217,13 +1243,29 @@ function SignalMonitorTab() {
               }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
                   <span style={{ fontSize: 10, color: COLORS.textMuted, letterSpacing: 0.5 }}>{s.name}</span>
-                  <span style={{
-                    fontSize: 8, fontWeight: 700, letterSpacing: 1,
-                    padding: "1px 5px", borderRadius: 3,
-                    background: `${severityColor(s.severity)}20`, color: severityColor(s.severity),
-                  }}>
-                    {s.severity.toUpperCase()}
-                  </span>
+                  <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+                    {s.dataSource === "live" && (
+                      <span style={{
+                        fontSize: 7, fontWeight: 700, letterSpacing: 0.5,
+                        padding: "1px 4px", borderRadius: 2,
+                        background: `${COLORS.green}25`, color: COLORS.green,
+                      }}>LIVE</span>
+                    )}
+                    {s.dataSource === "derived" && (
+                      <span style={{
+                        fontSize: 7, fontWeight: 700, letterSpacing: 0.5,
+                        padding: "1px 4px", borderRadius: 2,
+                        background: `${COLORS.blue}25`, color: COLORS.blue,
+                      }}>CALC</span>
+                    )}
+                    <span style={{
+                      fontSize: 8, fontWeight: 700, letterSpacing: 1,
+                      padding: "1px 5px", borderRadius: 3,
+                      background: `${severityColor(s.severity)}20`, color: severityColor(s.severity),
+                    }}>
+                      {s.severity.toUpperCase()}
+                    </span>
+                  </div>
                 </div>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 4 }}>
                   <span style={{ fontSize: 18, fontWeight: 800, color: COLORS.text }}>{s.value}</span>
@@ -1390,9 +1432,11 @@ export default function App() {
       <div style={{ overflowY: "auto", maxHeight: "calc(100vh - 120px)" }}>
         {activeTab === "thesis" && <ThesisTab />}
         {activeTab === "nodes" && <NodesTab />}
+        {activeTab === "patterns" && <PatternsTab />}
         {activeTab === "portfolio" && <PortfolioTab />}
         {activeTab === "playbook" && <PlaybookTab />}
         {activeTab === "monitor" && <SignalMonitorTab />}
+        {activeTab === "feed" && <LiveFeedTab />}
       </div>
     </div>
   );
