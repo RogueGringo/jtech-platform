@@ -145,6 +145,20 @@ export const FEED_SOURCES = [
 ];
 
 // ─── SEMANTIC CLASSIFICATION ─────────────────────────────────
+// Keywords that require word-boundary matching (short words that cause false positives
+// when matched as substrings: "if" in "life", "may" in "dismay", "says" in "essays")
+const WORD_BOUNDARY_SET = new Set(["if", "may", "says", "ais", "spr", "duc", "bbl"]);
+
+// Build a regex for word-boundary keywords: matches only as whole words
+function matchesKeyword(lower, keyword) {
+  if (WORD_BOUNDARY_SET.has(keyword)) {
+    const re = new RegExp(`\\b${keyword}\\b`, "i");
+    return re.test(lower);
+  }
+  return lower.includes(keyword);
+}
+
+// No duplicate "transit" — deduplicated
 const EFFECT_KEYWORDS = [
   "transit", "ais", "insurance", "p&i", "coverage", "vlcc", "freight",
   "force majeure", "spr", "drawdown", "rig count", "duc", "backwardation",
@@ -154,7 +168,7 @@ const EFFECT_KEYWORDS = [
   "breakeven", "measured", "tonnage", "loading", "discharge",
   "shut-in", "flaring", "refinery", "throughput", "storage",
   "exports", "imports", "shipments", "cargo", "demurrage", "charter",
-  "strait", "hormuz", "closure", "blockade", "transit",
+  "strait", "hormuz", "closure", "blockade",
   "sanctions", "embargo", "quota", "allocation",
   "million barrels", "bbl", "per day", "daily",
 ];
@@ -177,15 +191,17 @@ const CHAIN_TERMS = {
 };
 
 export function classifyText(text) {
+  if (!text) return { classification: "MIXED", score: 0, effectHits: [], eventHits: [], chainMap: [], confidence: 0 };
+
   const lower = text.toLowerCase();
-  const effectHits = EFFECT_KEYWORDS.filter(k => lower.includes(k));
-  const eventHits = EVENT_KEYWORDS.filter(k => lower.includes(k));
+  const effectHits = EFFECT_KEYWORDS.filter(k => matchesKeyword(lower, k));
+  const eventHits = EVENT_KEYWORDS.filter(k => matchesKeyword(lower, k));
   const totalHits = effectHits.length + eventHits.length;
   const score = totalHits > 0 ? (effectHits.length - eventHits.length) / totalHits : 0;
 
   const chainMap = [];
   for (const [chain, terms] of Object.entries(CHAIN_TERMS)) {
-    if (terms.some(t => lower.includes(t))) chainMap.push(chain);
+    if (terms.some(t => matchesKeyword(lower, t))) chainMap.push(chain);
   }
 
   return {
@@ -194,7 +210,8 @@ export function classifyText(text) {
     effectHits,
     eventHits,
     chainMap,
-    confidence: totalHits > 0 ? Math.min(100, Math.round((totalHits / 4) * 100)) : 0,
+    // Confidence: scale by 8 hits for 100%, not 4 (less saturation)
+    confidence: totalHits > 0 ? Math.min(100, Math.round((totalHits / 8) * 100)) : 0,
   };
 }
 
@@ -239,12 +256,9 @@ export async function fetchAllFeeds() {
     if (result.status === "fulfilled") allItems.push(...result.value);
   }
 
-  // Sort by date descending
-  allItems.sort((a, b) => {
-    const da = a.pubDate ? new Date(a.pubDate).getTime() : 0;
-    const db = b.pubDate ? new Date(b.pubDate).getTime() : 0;
-    return db - da;
-  });
+  // Sort by date descending — guard against NaN from unparseable dates
+  const safeTime = (d) => { const t = d ? new Date(d).getTime() : 0; return isNaN(t) ? 0 : t; };
+  allItems.sort((a, b) => safeTime(b.pubDate) - safeTime(a.pubDate));
 
   // Deduplicate by title similarity
   const seen = new Set();
@@ -269,34 +283,86 @@ export async function fetchAllFeeds() {
 }
 
 // ─── COMMODITY PRICE FETCHING ────────────────────────────────
-// Uses Yahoo Finance via CORS proxy for real-time commodity prices.
-// Falls back to scenario data if unavailable.
+// Multi-strategy: tries several public APIs in order.
+// Strategy 1: Yahoo Finance v8 (may require auth — try first, fast fail)
+// Strategy 2: Google Finance page scraping via CORS proxy
+// Strategy 3: Extract from news feed headlines (regex price extraction)
 
-async function fetchYahooQuote(symbol) {
-  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=5d`;
+// Strategy 1: Yahoo Finance v8 chart endpoint
+async function tryYahoo(symbol) {
+  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=5d`;
   const text = await fetchWithProxyRotation(url, 8000);
   if (!text) return null;
   try {
     const json = JSON.parse(text);
-    const meta = json.chart.result[0].meta;
-    return {
-      price: meta.regularMarketPrice,
-      previousClose: meta.chartPreviousClose || meta.previousClose,
-      currency: meta.currency,
-      symbol: meta.symbol,
-      fetchedAt: new Date().toISOString(),
-    };
-  } catch {
-    return null;
-  }
+    const result = json?.chart?.result;
+    if (!result || !result[0]?.meta) return null;
+    const meta = result[0].meta;
+    if (meta.regularMarketPrice == null) return null;
+    return { price: meta.regularMarketPrice, fetchedAt: new Date().toISOString() };
+  } catch { return null; }
 }
 
-// Map signal IDs to Yahoo Finance symbols
-const SYMBOL_MAP = {
-  brent: "BZ=F",     // Brent crude futures
-  wti: "CL=F",       // WTI crude futures
-  ovx: "^OVX",       // Oil VIX
+// Strategy 2: Scrape Google Finance for a quote
+async function tryGoogleFinance(query) {
+  const url = `https://www.google.com/finance/quote/${query}`;
+  const html = await fetchWithProxyRotation(url, 8000);
+  if (!html) return null;
+  try {
+    // Google Finance embeds the price in a data-last-price attribute or specific class
+    const match = html.match(/data-last-price="([\d.]+)"/) ||
+                  html.match(/class="YMlKec fxKbKc"[^>]*>([\d,.]+)</) ||
+                  html.match(/class="IsqQVc NprOob"[^>]*>([\d,.]+)</);
+    if (!match) return null;
+    const price = parseFloat(match[1].replace(/,/g, ""));
+    if (isNaN(price) || price <= 0) return null;
+    return { price, fetchedAt: new Date().toISOString() };
+  } catch { return null; }
+}
+
+// Strategy 3: Try MarketWatch
+async function tryMarketWatch(path) {
+  const url = `https://www.marketwatch.com/investing/${path}`;
+  const html = await fetchWithProxyRotation(url, 8000);
+  if (!html) return null;
+  try {
+    const match = html.match(/class="intraday__price"[^>]*>[\s\S]*?<bg-quote[^>]*>([\d,.]+)</) ||
+                  html.match(/class="value"[^>]*>\$?([\d,.]+)</) ||
+                  html.match(/"price":\s*"?([\d.]+)"?/);
+    if (!match) return null;
+    const price = parseFloat(match[1].replace(/,/g, ""));
+    if (isNaN(price) || price <= 0) return null;
+    return { price, fetchedAt: new Date().toISOString() };
+  } catch { return null; }
+}
+
+// Each commodity: try multiple strategies in order
+const PRICE_STRATEGIES = {
+  brent: [
+    () => tryYahoo("BZ=F"),
+    () => tryGoogleFinance("BZ=F:NYMEX"),
+    () => tryMarketWatch("future/brn00"),
+  ],
+  wti: [
+    () => tryYahoo("CL=F"),
+    () => tryGoogleFinance("CL=F:NYMEX"),
+    () => tryMarketWatch("future/crude%20oil%20-%20electronic"),
+  ],
+  ovx: [
+    () => tryYahoo("%5EOVX"),
+    () => tryGoogleFinance(".OVX:INDEXCBOE"),
+  ],
 };
+
+async function fetchPriceWithFallback(strategies) {
+  for (const strategy of strategies) {
+    try {
+      const result = await strategy();
+      if (result && result.price > 0) return result;
+    } catch { continue; }
+  }
+  return null;
+}
 
 export async function fetchCommodityPrices() {
   const CACHE_KEY = "commodityPrices";
@@ -306,13 +372,13 @@ export async function fetchCommodityPrices() {
   if (cached) return { ...cached, source: "cached" };
 
   const prices = {};
-  const entries = Object.entries(SYMBOL_MAP);
 
-  const results = await Promise.allSettled(
-    entries.map(async ([id, symbol]) => {
-      const quote = await fetchYahooQuote(symbol);
-      if (quote) {
-        prices[id] = { ...quote, source: "live" };
+  // Fetch all commodities concurrently, each with its own fallback chain
+  await Promise.all(
+    Object.entries(PRICE_STRATEGIES).map(async ([id, strategies]) => {
+      const result = await fetchPriceWithFallback(strategies);
+      if (result) {
+        prices[id] = { ...result, source: "live" };
       }
     })
   );
@@ -341,18 +407,4 @@ export async function fetchCommodityPrices() {
 
   if (Object.keys(prices).length > 0) setCache(CACHE_KEY, payload);
   return payload;
-}
-
-// ─── COMBINED DATA REFRESH ───────────────────────────────────
-export async function refreshAllData() {
-  const [feeds, prices] = await Promise.allSettled([
-    fetchAllFeeds(),
-    fetchCommodityPrices(),
-  ]);
-
-  return {
-    feeds: feeds.status === "fulfilled" ? feeds.value : { items: [], source: "error" },
-    prices: prices.status === "fulfilled" ? prices.value : { prices: {}, source: "error" },
-    refreshedAt: new Date().toISOString(),
-  };
 }
