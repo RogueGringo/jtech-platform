@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect } from "react";
 import { fetchAllFeeds, FEED_SOURCES } from "./DataService.jsx";
 import { COLORS } from "./theme.js";
 
