@@ -512,7 +512,7 @@ function NodesTab() {
       title: "US DOMESTIC SUPPLY RESPONSE",
       subtitle: "Structural capacity constraints in the US production response",
       color: COLORS.purple,
-      description: "The US shale machine — the world's swing producer — is structurally constrained. Rig counts are down 33% from 2022 peaks. DUC (drilled uncompleted) inventories are at operational minimums. Even at $100 oil, it takes 6-9 months to meaningfully increase production. This inelasticity is the structural condition facing all existing domestic producers.",
+      description: "The US shale machine — the world's swing producer — is structurally constrained. Oil-directed rig counts are down ~47% from late-2022 peaks. DUC (drilled uncompleted) inventories are at operational minimums. Even at $100 oil, it takes 6-9 months to meaningfully increase production. This inelasticity is the structural condition facing all existing domestic producers.",
       nodes: [
         { name: "Baker Hughes Oil Rig Count", current: "397 rigs (-47% from peak)", signal: "moderate", detail: "Down from 750 at Dec 2022 peak. ~517 total rigs (397 oil-directed). No meaningful response yet to Hormuz. At $50 WTI, rig counts could fall to 360-370." },
         { name: "DUC Inventory (Permian)", current: "~878 (halved from 2024)", signal: "high", detail: "Near operational minimum. Industry has been completing DUCs faster than drilling new ones for 18 months." },
