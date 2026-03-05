@@ -1,5 +1,28 @@
 # Iran–oil nexus at phase-change: a multi-layer geopolitical-economic matrix
 
+**Valor Energy Partners — Strategic Intelligence Brief**
+**Report Date: February 28 – March 3, 2026** | **Classification: Effects-Based Analysis**
+**Last Updated: March 5, 2026**
+
+---
+
+## Executive Summary
+
+> The February 28, 2026 strikes represent the highest-consequence geopolitical shock to oil markets since the 1979 Iranian Revolution. **Key findings:**
+>
+> - **Hormuz fully closed** — 0 tanker transits, 150+ vessels stranded, VLCC rates at $424K/day all-time record
+> - **Insurance market collapsed** — 7/12 P&I clubs withdrew coverage, removing basis for 90% of global fleet transit
+> - **Brent +13% intraday to $82+/bbl** — OVX hit ~69 (extreme volatility regime); VIX-OVX divergence confirms oil-specific supply shock
+> - **Iran production crashed** — 1.7M bpd → ~100K bpd post-Kharg Island strikes; fiscal breakeven at $163/bbl
+> - **Proxy network activated** — Houthis, Iraqi PMF, Hezbollah; Iran struck Saudi Ras Tanura (550K bpd)
+> - **OPEC+ true spare capacity overestimated** — 1.5-2.5M bpd deployable vs. 5.3M official; SPR at 56% (lowest since 1984)
+> - **US domestic optionality phase-shifted** — Ohio Utica (<$45 breakeven, 48M bbl in 2025), Pearsall (1,499 bbl/d IP-24, leases at $50-500/acre)
+> - **Critical threshold: 5 weeks** — if Hormuz closure extends beyond, Goldman projects $100 Brent; 1979-type structural repricing possible
+>
+> **Probability-weighted Brent scenarios:** Settlement $62-65 (15-20%) | Prolonged $75-85 (35-40%) | Extended closure $95-110 (25-30%) | Regional conflagration $120-150+ (10-15%)
+
+---
+
 The February 28, 2026 joint U.S.–Israeli strikes on Iran — killing Supreme Leader Khamenei and triggering the first functional closure of the Strait of Hormuz in modern history — represent the highest-consequence geopolitical shock to oil markets since the 1979 Iranian Revolution. **Brent surged 13% intraday to $82+/barrel** against a structurally oversupplied market that was pricing sub-$60 fundamentals just weeks earlier, with OVX hitting ~69 (extreme volatility regime). This event sits at the intersection of a collapsing Iranian state, a global oil market already wrestling with 2.7–3.1 mb/d projected surplus, and a set of U.S. domestic assets — particularly in Ohio's Utica oil window and South Texas's newly-proven Pearsall formation — whose optionality value has phase-shifted overnight. What follows is a maximum-density tensor decomposition across four interconnected layers: Iran's geopolitical state space, global oil structural mechanics, U.S. domestic asset positions, and the quantitative frameworks for mapping this crisis to price.
 
 ---

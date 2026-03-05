@@ -87,15 +87,19 @@ const SIGNALS = [
   { id: "stranded", category: "physical", name: "Stranded Vessels", value: "152", numeric: 152, unit: "", severity: "high", trend: "up", jitter: 3 },
   { id: "bypass", category: "physical", name: "Bypass Pipeline Util.", value: "51%", numeric: 51, unit: "%", severity: "moderate", trend: "up", jitter: 2 },
   { id: "vlcc", category: "physical", name: "VLCC Spot Rate", value: "$423,736", numeric: 423736, unit: "/day", severity: "critical", trend: "up", jitter: 5000 },
-  { id: "spr", category: "physical", name: "SPR Status", value: "No release", numeric: 0, unit: "", severity: "watch", trend: "stable", jitter: 0 },
+  { id: "spr", category: "physical", name: "SPR Status", value: "~400M bbl (56%)", numeric: 400, unit: "M bbl", severity: "high", trend: "stable", jitter: 0 },
   { id: "brent", category: "price", name: "Brent Front-Month", value: "$84.20", numeric: 84.2, unit: "/bbl", severity: "high", trend: "up", jitter: 0.4 },
   { id: "wti", category: "price", name: "WTI Cushing", value: "$76.35", numeric: 76.35, unit: "/bbl", severity: "moderate", trend: "up", jitter: 0.3 },
   { id: "spread", category: "price", name: "Brent-WTI Spread", value: "$7.85", numeric: 7.85, unit: "", severity: "high", trend: "up", jitter: 0.15 },
-  { id: "ovx", category: "price", name: "OVX (Vol Index)", value: "65.4", numeric: 65.4, unit: "", severity: "high", trend: "up", jitter: 1.5 },
+  { id: "ovx", category: "price", name: "OVX (Vol Index)", value: "69.0", numeric: 69.0, unit: "", severity: "critical", trend: "up", jitter: 1.5 },
   { id: "kcposted", category: "price", name: "Kansas Common Posted", value: "$63.10", numeric: 63.1, unit: "/bbl", severity: "moderate", trend: "up", jitter: 0.25 },
-  { id: "rigs", category: "domestic", name: "Baker Hughes Rig Count", value: "409", numeric: 409, unit: " rigs", severity: "moderate", trend: "stable", jitter: 0 },
+  { id: "rigs", category: "domestic", name: "Baker Hughes Rig Count", value: "397", numeric: 397, unit: " rigs", severity: "moderate", trend: "down", jitter: 0 },
   { id: "duc", category: "domestic", name: "DUC Inventory", value: "878", numeric: 878, unit: "", severity: "high", trend: "down", jitter: 0 },
   { id: "production", category: "domestic", name: "US Production", value: "13.5M", numeric: 13.5, unit: "M bpd", severity: "moderate", trend: "down", jitter: 0 },
+  { id: "iranprod", category: "geopolitical", name: "Iran Production", value: "~100K", numeric: 0.1, unit: "M bpd", severity: "critical", trend: "down", jitter: 0 },
+  { id: "opecspare", category: "geopolitical", name: "OPEC+ Spare (True)", value: "1.5-2.5M", numeric: 2.0, unit: "M bpd", severity: "high", trend: "stable", jitter: 0 },
+  { id: "georisk", category: "geopolitical", name: "Geo Risk Premium", value: "$7-9", numeric: 8, unit: "/bbl", severity: "high", trend: "up", jitter: 0.5 },
+  { id: "proxyactive", category: "geopolitical", name: "Proxy Network Status", value: "Active", numeric: null, unit: "", severity: "critical", trend: "up", jitter: 0 },
 ];
 
 // Thresholds for dynamic severity re-evaluation on signals that have numeric jitter
@@ -103,11 +107,12 @@ const SEVERITY_THRESHOLDS = {
   stranded: [["critical", 180], ["high", 140], ["moderate", 100]],
   bypass:   [["critical", 85],  ["high", 70],  ["moderate", 50]],
   vlcc:     [["critical", 350000], ["high", 250000], ["moderate", 150000]],
-  brent:    [["critical", 90],  ["high", 80],  ["moderate", 70]],
+  brent:    [["critical", 95],  ["high", 80],  ["moderate", 70]],
   wti:      [["critical", 85],  ["high", 78],  ["moderate", 70]],
   spread:   [["critical", 10],  ["high", 7],   ["moderate", 4]],
-  ovx:      [["critical", 80],  ["high", 60],  ["moderate", 40]],
+  ovx:      [["critical", 60],  ["high", 40],  ["moderate", 25]],
   kcposted: [["critical", 80],  ["high", 72],  ["moderate", 60]],
+  georisk:  [["critical", 20],  ["high", 7],   ["moderate", 4]],
 };
 
 function computeSeverity(id, numeric, baseSeverity) {
@@ -124,6 +129,7 @@ const CATEGORY_META = {
   physical: { label: "PHYSICAL FLOWS", color: COLORS.orange },
   price: { label: "PRICE ARCHITECTURE", color: COLORS.blue },
   domestic: { label: "DOMESTIC SUPPLY", color: COLORS.purple },
+  geopolitical: { label: "GEOPOLITICAL STATE", color: COLORS.gold },
 };
 
 // ─── HEADER ────────────────────────────────────────────────
@@ -482,7 +488,7 @@ function NodesTab() {
         { name: "Stranded Vessel Count", current: "150+", signal: "high", detail: "Vessels in transit at time of closure. Each represents cargo, insurance claims, and supply chain disruption." },
         { name: "Bypass Pipeline Utilization", current: "~50% capacity used", signal: "moderate", detail: "East-West Petroline (5M bpd capacity) + ADCOP (1.5M bpd) = 6.5M total vs. 15M+ normally transiting. Gap of 8.5M+ bpd cannot be bypassed." },
         { name: "VLCC Spot Rates", current: "$423,736/day (record)", signal: "critical", detail: "Previous record was ~$350K during COVID tanker storage boom. Rates reflect both supply disruption and vessel unavailability." },
-        { name: "SPR Drawdown Status", current: "No release announced", signal: "watch", detail: "411-415M barrels in reserve. Max drawdown 4.4M bpd for 90 days. Watch for coordinated IEA release announcement." },
+        { name: "SPR Drawdown Status", current: "~400M bbl (56% capacity)", signal: "high", detail: "Lowest since 1984. Biden released ~180M barrels 2022-23. Max drawdown 4.4M bpd for 90 days — covers ~25-30% of lost Hormuz flow. Full refill would cost $20B+ and take years." },
       ],
       watchFor: "Phase transition signal: First confirmed tanker transit through the Strait AND first insurance-backed cargo loading at Ras Tanura or Juaymah terminal. Both conditions must be met — one without the other is incomplete state change."
     },
@@ -508,12 +514,28 @@ function NodesTab() {
       color: COLORS.purple,
       description: "The US shale machine — the world's swing producer — is structurally constrained. Rig counts are down 33% from 2022 peaks. DUC (drilled uncompleted) inventories are at operational minimums. Even at $100 oil, it takes 6-9 months to meaningfully increase production. This inelasticity is the structural condition facing all existing domestic producers.",
       nodes: [
-        { name: "Baker Hughes Oil Rig Count", current: "409 rigs (-7% YoY)", signal: "moderate", detail: "Down from 610 at Dec 2022 peak. 33% decline. No meaningful response yet to Hormuz." },
+        { name: "Baker Hughes Oil Rig Count", current: "397 rigs (-33% from peak)", signal: "moderate", detail: "Down from 750 at Dec 2022 peak. ~517 total rigs (397 oil-directed). No meaningful response yet to Hormuz. At $50 WTI, rig counts could fall to 360-370." },
         { name: "DUC Inventory (Permian)", current: "~878 (halved from 2024)", signal: "high", detail: "Near operational minimum. Industry has been completing DUCs faster than drilling new ones for 18 months." },
-        { name: "US Production Forecast", current: "13.5M bpd → declining", signal: "moderate", detail: "EIA forecasts first annual production decline since 2021. This is structural, not price-responsive." },
+        { name: "US Production Forecast", current: "~13.5M bpd → declining", signal: "moderate", detail: "Permian at ~6.6M bpd (45% of total). Diamondback CEO: 'At current oil prices, US shale oil production has likely peaked.' Breakevens ~$70/bbl avg, projected $95 by mid-2030s." },
         { name: "Frac Crew Availability", current: "Tight", signal: "moderate", detail: "Frac spread count has not increased with prices. Labor and equipment constraints limit response." },
       ],
       watchFor: "Regime signal: Rig count crossing above 450 oil rigs indicates meaningful supply response activation. Below 450, production declines continue regardless of price — structural inelasticity condition persists."
+    },
+    {
+      id: "geopolitical",
+      title: "GEOPOLITICAL STATE SPACE",
+      subtitle: "Iran's collapsed tensor — regime, nuclear, proxy, and fiscal dimensions",
+      color: COLORS.gold,
+      description: "The February 28, 2026 strikes killed Supreme Leader Khamenei and triggered the first functional Hormuz closure in modern history. Iran's geopolitical state has collapsed into a singular crisis across regime stability, nuclear breakout, proxy activation, and fiscal failure dimensions. Each dimension reinforces the others — creating a self-amplifying crisis state.",
+      nodes: [
+        { name: "Iran Oil Production", current: "~100K bpd (from 1.7M)", signal: "critical", detail: "Kharg Island shut down post-strikes. Exports crashed 94%. Shadow fleet of ~1,500 tankers with ~300M barrels unsold at sea. Fiscal breakeven at $163/bbl (highest OPEC+)." },
+        { name: "Regime Succession Status", current: "Contested", signal: "critical", detail: "Mojtaba Khamenei (age 56) selected by Assembly of Experts under IRGC pressure. Lacks religious credentials for father-son dynastic succession. Interim council formed March 2." },
+        { name: "Nuclear Breakout Time", current: "Near-zero", signal: "critical", detail: "275 kg of 60%-enriched uranium — ~40x JCPOA limit. JCPOA formally terminated October 18, 2025. Fordow hit by GBU-57 bunker busters June 2025." },
+        { name: "Proxy Network Activation", current: "Multi-front active", signal: "critical", detail: "Houthis resumed Red Sea attacks (Mar 2). Iraqi PMF groups declared participation. Iran struck Saudi Ras Tanura refinery (550K bpd). Hezbollah rearming despite severe degradation." },
+        { name: "OPEC+ True Spare Capacity", current: "1.5-2.5M bpd (vs 5.3M official)", signal: "high", detail: "Independent analysts (Energy Aspects, Rapidan) estimate true deployable spare concentrated in Saudi Arabia and UAE only. Saudi has only produced 12M bpd for one month (Apr 2020)." },
+        { name: "Geopolitical Risk Premium", current: "$7-9/bbl (likely underpriced)", signal: "high", detail: "Reuters poll of 34 analysts, Feb 2026. Compare: 1990 Gulf War ~$20-25/bbl premium, Russia-Ukraine 2022 ~$25-30/bbl. Current Hormuz closure is unprecedented in severity." },
+      ],
+      watchFor: "Phase transition signal: Duration threshold is 5 weeks. If closure extends beyond, Goldman projects $100 Brent. If Iranian retaliation degrades Saudi/UAE export infrastructure, market enters 1979-type structural repricing with multi-year mean reversion."
     },
   ];
 
@@ -682,15 +704,26 @@ function PortfolioTab() {
       desc: "Zero recorded production in Ross County. 101 historical wells, none active. Commercial Trenton production elsewhere requires hydrothermal dolomite (HTD) creating vuggy secondary porosity along basement faults. Without HTD, matrix porosity <3% (non-commercial). Point Pleasant source rock thickest in southern Ohio (favorable). Seismic identification of sag features / fault zones required before drilling.",
     },
     {
+      name: "Utica Oil Window\nOhio",
+      risk: 30, reward: 80, size: 55,
+      color: COLORS.green,
+      depth: "8,000-10,000 ft",
+      wellCost: "<$600/lateral ft",
+      eur: "376K bbl (Kitzmiller KNX 10H)",
+      breakeven: "<$45/bbl (EOG)",
+      role: "UNCONVENTIONAL — GROWTH PHASE",
+      desc: "Record 48M barrels in 2025 (+39% YoY), nearly tripling since 2021. EOG acquired Encino for $5.6B — ~675K net core acres, 2B+ BOE undeveloped. EOG achieving <$600/lateral foot for 3-4 mile laterals. Harrison and Carroll counties each exceeded 12M barrels in 2025. Cumulative investment since 2011: $114.6B. Infrastructure advantages from data center gas demand and LNG feed gas.",
+    },
+    {
       name: "Pearsall\nSouth Texas",
       risk: 55, reward: 95, size: 60,
       color: COLORS.gold,
       depth: "7,000-10,400 ft",
       wellCost: "$8-12M",
-      eur: "200-300K bbl (Formentera analog)",
+      eur: "250-500K+ bbl (Formentera analog)",
       breakeven: "$60-70/bbl",
-      role: "UNCONVENTIONAL — EMERGING PLAY",
-      desc: "Formentera Partners 2025 Frio County results: Hurrikain 1,499 bbl/d + 4 MMcf/d IP; Darlene 1,282 bbl/d + 2.9 MMcf/d IP. Modern high-intensity completions (2,000-3,000 lb proppant/ft) unlocked formation previously dismissed as 'heartbreak shale.' EOG Resources entered play (Burns Ranch #1H wildcat). Overpressured, 3,000 ft below Eagle Ford — narrow drilling margin between pore pressure and fracture gradient. Multi-bench stacking: Austin Chalk + Eagle Ford + Pearsall.",
+      role: "UNCONVENTIONAL — INFLECTION POINT",
+      desc: "Formentera Partners 2025 Frio County results transformed the 'heartbreak shale': Hurrikain Cat I-STX (7,862-ft lateral) IP-24 of 1,499 bbl + 4 MMcf/d (191 bbl/1,000 ft — exceptional); Darlene 1-STX (9,220-ft lateral) IP-24 1,282 bbl/d, 25,177 barrels first month. Key: proppant loading 2,000-3,000 lb/ft vs Marathon's 2014 attempt at 475 lb/ft. EOG testing (Burns Ranch #1H). Leases at $50-500/acre vs Eagle Ford core $5,000-15,000+/acre — embedded call option value. USGS: 8.8 Tcf undiscovered gas; updip oil potential unquantified.",
     },
   ];
 
@@ -938,6 +971,71 @@ function PlaybookTab() {
           ))}
         </div>
       ))}
+
+      {/* Scenario-weighted price mapping (from Layer 4 of feedback report) */}
+      <div style={{
+        background: COLORS.surface,
+        border: `1px solid ${COLORS.border}`,
+        borderRadius: 12,
+        padding: "24px 28px",
+        marginBottom: 20,
+      }}>
+        <h3 style={{
+          fontSize: 14, fontWeight: 700, color: COLORS.gold,
+          letterSpacing: 1, margin: "0 0 6px",
+          display: "flex", alignItems: "center", gap: 10,
+        }}>
+          <span style={{ fontSize: 18 }}>◆</span>
+          SCENARIO-WEIGHTED PRICE MAPPING
+        </h3>
+        <p style={{ fontSize: 12, color: COLORS.textDim, lineHeight: 1.6, margin: "0 0 16px" }}>
+          Morgan Stanley / Dallas Fed framework. VIX-OVX divergence (OVX ~69 vs VIX ~18) confirms oil-specific supply shock,
+          not broad macro fear. MS-GARCH regime detection confirms extreme-volatility state (Regime 2).
+        </p>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
+          {[
+            { scenario: "Negotiated Settlement", prob: "15-20%", price: "$62-65", driver: "Diplomatic off-ramp, OPEC spare deployed", color: COLORS.green },
+            { scenario: "Prolonged Sanctions + Partial Reopening", prob: "35-40%", price: "$75-85", driver: "Sustained disruption, gradual normalization", color: COLORS.blue },
+            { scenario: "Extended Closure (5+ weeks)", prob: "25-30%", price: "$95-110", driver: "15-20M bpd at risk, SPR/spare insufficient", color: COLORS.orange },
+            { scenario: "Full Regional Conflagration", prob: "10-15%", price: "$120-150+", driver: "Saudi/UAE production hit, 1979-type structural shift", color: COLORS.red },
+          ].map((s, i) => (
+            <div key={i} style={{
+              padding: "16px", borderRadius: 8,
+              background: `${s.color}08`, border: `1px solid ${s.color}25`,
+              borderTop: `3px solid ${s.color}`,
+            }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: s.color, letterSpacing: 1, marginBottom: 8 }}>
+                {s.scenario.toUpperCase()}
+              </div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: s.color, marginBottom: 4 }}>
+                {s.price}
+              </div>
+              <div style={{ fontSize: 11, color: COLORS.textDim, marginBottom: 8 }}>Brent /bbl</div>
+              <div style={{
+                fontSize: 10, fontWeight: 700, color: COLORS.text,
+                padding: "4px 8px", borderRadius: 4,
+                background: `${s.color}15`, display: "inline-block", marginBottom: 8,
+              }}>
+                P: {s.prob}
+              </div>
+              <div style={{ fontSize: 11, color: COLORS.textDim, lineHeight: 1.5 }}>
+                {s.driver}
+              </div>
+            </div>
+          ))}
+        </div>
+        <div style={{
+          marginTop: 16, padding: "12px 16px", borderRadius: 8,
+          background: `${COLORS.gold}08`, border: `1px solid ${COLORS.gold}15`,
+        }}>
+          <p style={{ fontSize: 12, color: COLORS.textDim, lineHeight: 1.6, margin: 0 }}>
+            <strong style={{ color: COLORS.gold }}>Critical duration threshold: 5 weeks.</strong> If Hormuz reopens within 2-3 weeks,
+            this follows the 2019 Abqaiq pattern (transitory, rapid mean reversion). Beyond 5 weeks &mdash; Goldman's threshold for
+            $100 Brent &mdash; it enters 1990 Gulf War territory. If retaliation degrades Saudi/UAE infrastructure,
+            the market enters <strong style={{ color: COLORS.red }}>1979-type structural repricing</strong> with multi-year mean reversion.
+          </p>
+        </div>
+      </div>
 
       {/* MPD as boundary layer phenomenon — objective, not prescriptive */}
       <div style={{
@@ -1267,7 +1365,7 @@ function SignalMonitorTab() {
           <div style={{ marginBottom: 12 }}>
             <div style={{ fontSize: 10, color: COLORS.textMuted, marginBottom: 6, letterSpacing: 1 }}>BY CATEGORY</div>
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-              {["all", "kernel", "physical", "price", "domestic"].map(cat => (
+              {["all", "kernel", "physical", "price", "domestic", "geopolitical"].map(cat => (
                 <button key={cat} onClick={() => setFilter(f => ({ ...f, category: cat }))} style={{
                   padding: "4px 10px", borderRadius: 4, fontSize: 10, fontWeight: 600, letterSpacing: 0.5,
                   cursor: "pointer", border: "1px solid", textTransform: "uppercase",

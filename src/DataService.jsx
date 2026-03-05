@@ -169,7 +169,7 @@ export const FEED_SOURCES = [
 // ─── SEMANTIC CLASSIFICATION ─────────────────────────────────
 // Keywords that require word-boundary matching (short words that cause false positives
 // when matched as substrings: "if" in "life", "may" in "dismay", "says" in "essays")
-const WORD_BOUNDARY_SET = new Set(["if", "may", "says", "ais", "spr", "duc", "bbl"]);
+const WORD_BOUNDARY_SET = new Set(["if", "may", "says", "ais", "spr", "duc", "bbl", "eur", "lng", "wti"]);
 
 // Build a regex for word-boundary keywords: matches only as whole words
 function matchesKeyword(lower, keyword) {
@@ -193,6 +193,23 @@ const EFFECT_KEYWORDS = [
   "strait", "hormuz", "closure", "blockade",
   "sanctions", "embargo", "quota", "allocation",
   "million barrels", "bbl", "per day", "daily",
+  // Geopolitical effect indicators (from feedback report Layer 1)
+  "assassination", "regime change", "succession", "decapitation",
+  "kharg island", "ras tanura", "enriched uranium", "breakout time",
+  "shadow fleet", "ship-to-ship", "fiscal breakeven",
+  // Proxy network / escalation effects
+  "houthi", "red sea", "suez canal", "proxy", "retaliation", "strike",
+  "drone attack", "missile", "carrier strike group",
+  // Supply/market structure effects (from Layer 2)
+  "spare capacity", "contango", "ovx", "volatility regime",
+  "depleted", "decline rate", "tier 1 inventory",
+  "lng", "liquefied natural gas", "force majeure",
+  // Domestic asset effects (from Layer 3)
+  "lateral", "proppant", "ip-24", "eur", "frac",
+  "pearsall", "utica", "eagle ford", "permian",
+  "completions", "wellhead", "net revenue interest",
+  // Bypass infrastructure
+  "fujairah", "east-west pipeline", "adcop", "bypass",
 ];
 
 const EVENT_KEYWORDS = [
@@ -203,13 +220,17 @@ const EVENT_KEYWORDS = [
   "forecast", "projected", "risk of", "warns", "caution", "concerned",
   "worried", "optimistic", "pessimistic", "bullish", "bearish", "mood",
   "says", "thinks", "suggests", "imagine", "if",
+  // Additional narrative/prediction indicators
+  "scenario", "probability", "estimate", "baseline", "target price",
+  "outlook", "consensus", "uncertainty", "speculative",
 ];
 
 const CHAIN_TERMS = {
-  "Maritime Insurance Cascade": ["insurance", "p&i", "coverage", "withdrawn", "reinsurance", "premium", "hull", "war risk", "club", "lloyd"],
-  "Physical Flow Cascade": ["transit", "ais", "tanker", "vessel", "stranded", "vlcc", "freight", "pipeline", "tonnage", "loading", "cargo", "draft", "hormuz", "strait", "shipping", "blockade"],
-  "Price Architecture Cascade": ["brent", "wti", "spread", "backwardation", "curve", "netback", "breakeven", "ovx", "futures", "contango", "oil price", "crude price", "barrel"],
-  "Supply Constraint Cascade": ["rig count", "duc", "production", "bpd", "capacity", "frac", "drilling", "completions", "shut-in", "spr", "reserve", "opec", "output"],
+  "Maritime Insurance Cascade": ["insurance", "p&i", "coverage", "withdrawn", "reinsurance", "premium", "hull", "war risk", "club", "lloyd", "demurrage", "force majeure"],
+  "Physical Flow Cascade": ["transit", "ais", "tanker", "vessel", "stranded", "vlcc", "freight", "pipeline", "tonnage", "loading", "cargo", "draft", "hormuz", "strait", "shipping", "blockade", "fujairah", "bypass", "east-west", "adcop", "suez", "red sea", "reroute"],
+  "Price Architecture Cascade": ["brent", "wti", "spread", "backwardation", "curve", "netback", "breakeven", "ovx", "futures", "contango", "oil price", "crude price", "barrel", "volatility regime", "garch", "risk premium", "forward curve"],
+  "Supply Constraint Cascade": ["rig count", "duc", "production", "bpd", "capacity", "frac", "drilling", "completions", "shut-in", "spr", "reserve", "opec", "output", "spare capacity", "decline rate", "lateral", "proppant", "shale", "permian", "tier 1"],
+  "Geopolitical Escalation Cascade": ["assassination", "regime change", "succession", "irgc", "proxy", "houthi", "hezbollah", "retaliation", "strike", "nuclear", "enriched", "breakout", "khamenei", "sanctions", "carrier", "drone attack", "missile", "kharg", "ras tanura"],
 };
 
 export function classifyText(text) {

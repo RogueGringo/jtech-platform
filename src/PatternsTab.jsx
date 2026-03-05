@@ -670,6 +670,65 @@ export default function PatternsTab() {
         </div>
       </div>
 
+      {/* Historical conflict-to-price correlation (from feedback report Layer 2) */}
+      <div style={{
+        background: COLORS.surface, border: `1px solid ${COLORS.border}`,
+        borderRadius: 12, padding: "20px 24px", marginBottom: 20,
+      }}>
+        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, color: COLORS.gold, marginBottom: 6 }}>
+          HISTORICAL CONFLICT-TO-PRICE CORRELATION
+        </div>
+        <p style={{ fontSize: 12, color: COLORS.textDim, lineHeight: 1.6, margin: "0 0 16px" }}>
+          Mean reversion times have shortened dramatically due to US shale elasticity, SPR availability, and faster information flow.
+          But the current event &mdash; simultaneous Hormuz closure, regime decapitation, and proxy activation &mdash; most closely
+          parallels 1979 in structural severity.
+        </p>
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+            <thead>
+              <tr style={{ borderBottom: `2px solid ${COLORS.border}` }}>
+                {["Event", "Initial Shock", "Time to Peak", "Mean Reversion", "Type"].map(h => (
+                  <th key={h} style={{
+                    padding: "8px 12px", textAlign: "left", fontSize: 10,
+                    fontWeight: 700, letterSpacing: 1, color: COLORS.gold,
+                  }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                { event: "1973 Arab Embargo", shock: "+300%", peak: "~3 months", reversion: "Never", type: "Structural", color: COLORS.red },
+                { event: "1979 Iran Revolution", shock: "+150%", peak: "~18 months", reversion: "~6-7 years", type: "Structural", color: COLORS.red },
+                { event: "1990 Gulf War", shock: "+120%", peak: "~2.5 months", reversion: "~6 months", type: "Transitory", color: COLORS.orange },
+                { event: "2003 Iraq Invasion", shock: "+30%", peak: "Pre-invasion", reversion: "Days (premium)", type: "Mixed", color: COLORS.blue },
+                { event: "2019 Abqaiq Attack", shock: "+15%", peak: "1 day", reversion: "~2 weeks", type: "Transitory", color: COLORS.green },
+                { event: "2022 Russia-Ukraine", shock: "+30%", peak: "~3 weeks", reversion: "~8 weeks", type: "Transitory", color: COLORS.orange },
+                { event: "2026 Iran/Hormuz (current)", shock: "+13% (day 1)", peak: "TBD", reversion: "TBD", type: "TBD — monitoring", color: COLORS.gold },
+              ].map((row, i) => (
+                <tr key={i} style={{
+                  borderBottom: `1px solid ${COLORS.border}`,
+                  background: i === 6 ? `${COLORS.gold}08` : "transparent",
+                }}>
+                  <td style={{ padding: "8px 12px", color: row.color, fontWeight: 600 }}>{row.event}</td>
+                  <td style={{ padding: "8px 12px", color: COLORS.text }}>{row.shock}</td>
+                  <td style={{ padding: "8px 12px", color: COLORS.textDim }}>{row.peak}</td>
+                  <td style={{ padding: "8px 12px", color: COLORS.textDim }}>{row.reversion}</td>
+                  <td style={{ padding: "8px 12px" }}>
+                    <span style={{
+                      fontSize: 9, fontWeight: 700, letterSpacing: 0.5,
+                      padding: "2px 6px", borderRadius: 3,
+                      background: `${row.color}15`, color: row.color,
+                    }}>
+                      {row.type}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       {/* Probabilistic dimensionalization */}
       <div style={{
         background: `linear-gradient(135deg, ${COLORS.goldDim}12, ${COLORS.surface})`,
@@ -678,10 +737,13 @@ export default function PatternsTab() {
         padding: "24px 28px",
       }}>
         <h3 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 18, color: COLORS.gold, margin: "0 0 14px" }}>
-          Multi-Scale Regime Detection
+          Multi-Scale Regime Detection (MS-GARCH Framework)
         </h3>
         <p style={{ fontSize: 13, color: COLORS.text, lineHeight: 1.7, margin: "0 0 16px" }}>
-          Phase transitions propagate across scales. The Hormuz closure is simultaneously visible as a change in:
+          Markov-Switching GARCH identifies two volatility regimes: Regime 1 (low, persistent, tranquil) and
+          Regime 2 (high, less persistent, agitated). The current market has clearly entered Regime 2.
+          OVX at ~69 while VIX ~18 = oil-specific supply shock, not broad macro fear.
+          Phase transitions propagate across scales:
         </p>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
           {[
