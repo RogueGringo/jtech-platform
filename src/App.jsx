@@ -79,27 +79,32 @@ function SourceVerifyLink({ sources }) {
 }
 
 // ─── SIGNAL MONITOR DATA ───────────────────────────────────
+// LIVE signals: brent, wti, ovx, spread, kcposted — fetched from Yahoo Finance via HF proxy
+// REFERENCE signals: all others — sourced from feedback report, verified at time of writing
+// No synthetic data. No jitter. No fake timestamps.
+const LIVE_PRICE_IDS = new Set(["brent", "wti", "ovx", "spread", "kcposted"]);
+
 const SIGNALS = [
-  { id: "pni", category: "kernel", name: "P&I Club Coverage", value: "3/12 active", numeric: 3, unit: "/12", severity: "critical", trend: "stable", jitter: 0 },
-  { id: "warrisk", category: "kernel", name: "War Risk Premium", value: "Unquotable", numeric: null, unit: "", severity: "critical", trend: "stable", jitter: 0 },
-  { id: "reinsure", category: "kernel", name: "Reinsurance Market", value: "Suspended", numeric: null, unit: "", severity: "critical", trend: "stable", jitter: 0 },
-  { id: "ais", category: "physical", name: "Tanker AIS Transits", value: "0", numeric: 0, unit: "/day", severity: "critical", trend: "down", jitter: 0 },
-  { id: "stranded", category: "physical", name: "Stranded Vessels", value: "152", numeric: 152, unit: "", severity: "high", trend: "up", jitter: 3 },
-  { id: "bypass", category: "physical", name: "Bypass Pipeline Util.", value: "51%", numeric: 51, unit: "%", severity: "moderate", trend: "up", jitter: 2 },
-  { id: "vlcc", category: "physical", name: "VLCC Spot Rate", value: "$423,736", numeric: 423736, unit: "/day", severity: "critical", trend: "up", jitter: 5000 },
-  { id: "spr", category: "physical", name: "SPR Status", value: "~400M bbl (56%)", numeric: 400, unit: "M bbl", severity: "high", trend: "stable", jitter: 0 },
-  { id: "brent", category: "price", name: "Brent Front-Month", value: "$84.20", numeric: 84.2, unit: "/bbl", severity: "high", trend: "up", jitter: 0.4 },
-  { id: "wti", category: "price", name: "WTI Cushing", value: "$76.35", numeric: 76.35, unit: "/bbl", severity: "moderate", trend: "up", jitter: 0.3 },
-  { id: "spread", category: "price", name: "Brent-WTI Spread", value: "$7.85", numeric: 7.85, unit: "", severity: "high", trend: "up", jitter: 0.15 },
-  { id: "ovx", category: "price", name: "OVX (Vol Index)", value: "69.0", numeric: 69.0, unit: "", severity: "critical", trend: "up", jitter: 1.5 },
-  { id: "kcposted", category: "price", name: "Kansas Common Posted", value: "$63.10", numeric: 63.1, unit: "/bbl", severity: "moderate", trend: "up", jitter: 0.25 },
-  { id: "rigs", category: "domestic", name: "Baker Hughes Rig Count", value: "397", numeric: 397, unit: " rigs", severity: "moderate", trend: "down", jitter: 0 },
-  { id: "duc", category: "domestic", name: "DUC Inventory", value: "878", numeric: 878, unit: "", severity: "high", trend: "down", jitter: 0 },
-  { id: "production", category: "domestic", name: "US Production", value: "13.5M", numeric: 13.5, unit: "M bpd", severity: "moderate", trend: "down", jitter: 0 },
-  { id: "iranprod", category: "geopolitical", name: "Iran Production", value: "~100K", numeric: 0.1, unit: "M bpd", severity: "critical", trend: "down", jitter: 0 },
-  { id: "opecspare", category: "geopolitical", name: "OPEC+ Spare (True)", value: "1.5-2.5M", numeric: 2.0, unit: "M bpd", severity: "high", trend: "stable", jitter: 0 },
-  { id: "georisk", category: "geopolitical", name: "Geo Risk Premium", value: "$7-9", numeric: 8, unit: "/bbl", severity: "high", trend: "up", jitter: 0.5 },
-  { id: "proxyactive", category: "geopolitical", name: "Proxy Network Status", value: "Active", numeric: null, unit: "", severity: "critical", trend: "up", jitter: 0 },
+  { id: "pni", category: "kernel", name: "P&I Club Coverage", value: "3/12 active", numeric: 3, unit: "/12", severity: "critical", trend: "stable", source: "IGPANDI.org — Mar 3, 2026" },
+  { id: "warrisk", category: "kernel", name: "War Risk Premium", value: "Unquotable", numeric: null, unit: "", severity: "critical", trend: "stable", source: "Lloyd's Market — Mar 3, 2026" },
+  { id: "reinsure", category: "kernel", name: "Reinsurance Market", value: "Suspended", numeric: null, unit: "", severity: "critical", trend: "stable", source: "Munich Re / Swiss Re — Mar 3, 2026" },
+  { id: "ais", category: "physical", name: "Tanker AIS Transits", value: "0", numeric: 0, unit: "/day", severity: "critical", trend: "down", source: "MarineTraffic — Mar 2, 2026" },
+  { id: "stranded", category: "physical", name: "Stranded Vessels", value: "150+", numeric: 150, unit: "", severity: "high", trend: "up", source: "Lloyd's List — Mar 2, 2026" },
+  { id: "bypass", category: "physical", name: "Bypass Pipeline Util.", value: "~50%", numeric: 50, unit: "%", severity: "moderate", trend: "up", source: "Estimated — East-West + ADCOP capacity" },
+  { id: "vlcc", category: "physical", name: "VLCC Spot Rate", value: ">$200K", numeric: 200000, unit: "/day", severity: "critical", trend: "up", source: "Feedback report — Mar 2, 2026" },
+  { id: "spr", category: "physical", name: "SPR Status", value: "~400M bbl (56%)", numeric: 400, unit: "M bbl", severity: "high", trend: "stable", source: "EIA — Feb 2026" },
+  { id: "brent", category: "price", name: "Brent Front-Month", value: "—", numeric: null, unit: "/bbl", severity: "moderate", trend: "stable", source: "live" },
+  { id: "wti", category: "price", name: "WTI Cushing", value: "—", numeric: null, unit: "/bbl", severity: "moderate", trend: "stable", source: "live" },
+  { id: "spread", category: "price", name: "Brent-WTI Spread", value: "—", numeric: null, unit: "", severity: "moderate", trend: "stable", source: "live" },
+  { id: "ovx", category: "price", name: "OVX (Vol Index)", value: "—", numeric: null, unit: "", severity: "moderate", trend: "stable", source: "live" },
+  { id: "kcposted", category: "price", name: "Kansas Common Posted", value: "—", numeric: null, unit: "/bbl", severity: "moderate", trend: "stable", source: "live" },
+  { id: "rigs", category: "domestic", name: "Baker Hughes Rig Count", value: "397", numeric: 397, unit: " rigs", severity: "moderate", trend: "down", source: "Baker Hughes — Feb 2026" },
+  { id: "duc", category: "domestic", name: "DUC Inventory", value: "878", numeric: 878, unit: "", severity: "high", trend: "down", source: "EIA DPR — Feb 2026" },
+  { id: "production", category: "domestic", name: "US Production", value: "13.5M", numeric: 13.5, unit: "M bpd", severity: "moderate", trend: "down", source: "EIA STEO — Feb 2026" },
+  { id: "iranprod", category: "geopolitical", name: "Iran Production", value: "~100K", numeric: 0.1, unit: "M bpd", severity: "critical", trend: "down", source: "Feedback report — Mar 2026" },
+  { id: "opecspare", category: "geopolitical", name: "OPEC+ Spare (True)", value: "1.5-2.5M", numeric: 2.0, unit: "M bpd", severity: "high", trend: "stable", source: "Energy Aspects / Rapidan" },
+  { id: "georisk", category: "geopolitical", name: "Geo Risk Premium", value: "$7-9", numeric: 8, unit: "/bbl", severity: "high", trend: "up", source: "Reuters poll / Morgan Stanley — Feb 2026" },
+  { id: "proxyactive", category: "geopolitical", name: "Proxy Network Status", value: "Active", numeric: null, unit: "", severity: "critical", trend: "up", source: "OSINT — Mar 2, 2026" },
 ];
 
 // Thresholds for dynamic severity re-evaluation on signals that have numeric jitter
@@ -545,10 +550,18 @@ function NodesTab() {
         <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 22, color: COLORS.gold, margin: "0 0 8px" }}>
           Primary Tracking Nodes
         </h2>
-        <p style={{ fontSize: 14, color: COLORS.textDim, lineHeight: 1.6, margin: 0 }}>
-          These are the effect-indicators that describe the real state of the system. They're organized by 
+        <p style={{ fontSize: 14, color: COLORS.textDim, lineHeight: 1.6, margin: "0 0 8px" }}>
+          These are the effect-indicators that describe the real state of the system. They're organized by
           causal hierarchy — insurance gates physical flows, which drive prices, which determine domestic economics.
         </p>
+        <div style={{
+          display: "inline-flex", alignItems: "center", gap: 6,
+          padding: "4px 10px", borderRadius: 4,
+          background: `${COLORS.blue}10`, border: `1px solid ${COLORS.blue}20`,
+          fontSize: 10, fontWeight: 700, letterSpacing: 0.5, color: COLORS.blue,
+        }}>
+          REFERENCE DATA — Values sourced from verified reports. Not live-updating. Verify at upstream sources.
+        </div>
       </div>
 
       {categories.map((cat, ci) => (
@@ -739,6 +752,14 @@ function PortfolioTab() {
           oil and gas windows. The geometry below shows where each asset sits relative to the others — 
           depth, cost, EUR, and breakeven economics at current posted prices.
         </p>
+        <div style={{
+          display: "inline-flex", alignItems: "center", gap: 6,
+          padding: "4px 10px", borderRadius: 4,
+          background: `${COLORS.blue}10`, border: `1px solid ${COLORS.blue}20`,
+          fontSize: 10, fontWeight: 700, letterSpacing: 0.5, color: COLORS.blue,
+        }}>
+          REFERENCE DATA — Well results, geology, and economics from published sources (RRC, KGS, EOG, Formentera).
+        </div>
       </div>
 
       {/* Risk-Reward scatter */}
@@ -878,6 +899,14 @@ function PlaybookTab() {
           alters the boundary conditions for the next. The maps below show the objective structure of how 
           effects move through the system. The geometry is the same whether oil is $40 or $140.
         </p>
+        <div style={{
+          display: "inline-flex", alignItems: "center", gap: 6, marginTop: 8,
+          padding: "4px 10px", borderRadius: 4,
+          background: `${COLORS.blue}10`, border: `1px solid ${COLORS.blue}20`,
+          fontSize: 10, fontWeight: 700, letterSpacing: 0.5, color: COLORS.blue,
+        }}>
+          CAUSAL FRAMEWORK — Structural relationships between effect-indicators. Scenario pricing from Morgan Stanley / Dallas Fed.
+        </div>
       </div>
 
       {/* Effect cascade chains */}
@@ -1117,29 +1146,24 @@ function PlaybookTab() {
 // ─── SIGNAL MONITOR TAB ────────────────────────────────────
 function SignalMonitorTab() {
   const [signals, setSignals] = useState(() =>
-    SIGNALS.map(s => ({ ...s, lastUpdate: new Date(), dataSource: "scenario" }))
+    SIGNALS.map(s => ({
+      ...s,
+      dataSource: LIVE_PRICE_IDS.has(s.id) ? "pending" : "reference",
+      lastUpdate: LIVE_PRICE_IDS.has(s.id) ? null : null,
+    }))
   );
   const [filter, setFilter] = useState({ severity: "all", category: "all" });
   const [analyzerText, setAnalyzerText] = useState("");
   const [analysisResult, setAnalysisResult] = useState(null);
-  const [now, setNow] = useState(Date.now());
-  const [priceData, setPriceData] = useState(null);
   const [priceStatus, setPriceStatus] = useState("loading");
 
-  // Tick every second so timestamps stay current
-  useEffect(() => {
-    const timerId = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(timerId);
-  }, []);
-
-  // Fetch real commodity prices and overlay onto signals
+  // Fetch real commodity prices — the ONLY live data source
   useEffect(() => {
     let cancelled = false;
     async function fetchPrices() {
       try {
         const data = await fetchCommodityPrices();
         if (cancelled) return;
-        setPriceData(data);
         setPriceStatus(data.source);
 
         if (data.source === "live" || data.source === "cached") {
@@ -1147,7 +1171,6 @@ function SignalMonitorTab() {
             const priceInfo = data.prices[s.id];
             if (!priceInfo || priceInfo.price === undefined) return s;
             const newNumeric = priceInfo.price;
-            // Only brent, wti, ovx, spread, kcposted reach here (all price signals)
             let formatted;
             if (s.unit === "/bbl" || s.id === "spread") formatted = "$" + newNumeric.toFixed(2);
             else if (s.unit === "%") formatted = Math.round(newNumeric) + "%";
@@ -1168,32 +1191,8 @@ function SignalMonitorTab() {
       }
     }
     fetchPrices();
-    const interval = setInterval(fetchPrices, 2 * 60 * 1000); // refresh every 2 min
+    const interval = setInterval(fetchPrices, 2 * 60 * 1000);
     return () => { cancelled = true; clearInterval(interval); };
-  }, []);
-
-  // Simulated updates for signals without live data
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setSignals(prev => prev.map(s => {
-        // Skip signals that have live data — don't add jitter to real numbers
-        if (s.dataSource === "live" || s.dataSource === "derived") {
-          return { ...s, lastUpdate: new Date() };
-        }
-        if (!s.jitter || s.numeric == null) return { ...s, lastUpdate: new Date() };
-        const delta = (Math.random() - 0.45) * s.jitter;
-        const newNumeric = Math.max(0, s.numeric + delta);
-        let formatted;
-        if (s.id === "vlcc") formatted = "$" + Math.round(newNumeric).toLocaleString();
-        else if (s.unit === "/bbl" || s.id === "spread") formatted = "$" + newNumeric.toFixed(2);
-        else if (s.unit === "%") formatted = Math.round(newNumeric) + "%";
-        else if (Number.isInteger(newNumeric)) formatted = String(newNumeric);
-        else formatted = newNumeric.toFixed(1);
-        const newSeverity = computeSeverity(s.id, newNumeric, s.severity);
-        return { ...s, numeric: newNumeric, value: formatted, severity: newSeverity, lastUpdate: new Date() };
-      }));
-    }, 5000);
-    return () => clearInterval(interval);
   }, []);
 
   // Compute coherence score: fraction of signals that are critical or high
@@ -1221,17 +1220,12 @@ function SignalMonitorTab() {
   const trendArrow = (t) =>
     t === "up" ? "▲" : t === "down" ? "▼" : "■";
 
-  const formatTime = (d) => {
-    const s = Math.floor((now - d) / 1000);
-    return s < 5 ? "just now" : s + "s ago";
-  };
-
   // Regime label
   const regimeLabel = coherenceScore >= 75 ? "CRISIS REGIME" : coherenceScore >= 50 ? "TRANSITION" : "STABLE";
   const regimeColor = coherenceScore >= 75 ? COLORS.red : coherenceScore >= 50 ? COLORS.orange : COLORS.green;
 
   const liveSignalCount = signals.filter(s => s.dataSource === "live" || s.dataSource === "derived").length;
-  const scenarioSignalCount = signals.length - liveSignalCount;
+  const referenceSignalCount = signals.filter(s => s.dataSource === "reference").length;
 
   return (
     <div style={{ padding: "32px", maxWidth: 1200 }}>
@@ -1266,11 +1260,11 @@ function SignalMonitorTab() {
                 fontSize: 9, fontWeight: 700, letterSpacing: 1,
                 color: priceStatus === "live" ? COLORS.green : priceStatus === "cached" ? COLORS.blue : COLORS.orange,
               }}>
-                {priceStatus === "live" ? "LIVE DATA" : priceStatus === "cached" ? "CACHED" : priceStatus === "loading" ? "FETCHING" : "SCENARIO"}
+                {priceStatus === "live" ? "LIVE PRICES" : priceStatus === "cached" ? "CACHED" : priceStatus === "loading" ? "FETCHING" : "NO LIVE PRICES"}
               </span>
             </div>
             <div style={{ fontSize: 9, color: COLORS.textMuted }}>
-              {liveSignalCount} live · {scenarioSignalCount} scenario
+              {liveSignalCount} live · {referenceSignalCount} reference
             </div>
           </div>
           {/* Regime badge */}
@@ -1420,20 +1414,18 @@ function SignalMonitorTab() {
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
                   <span style={{ fontSize: 10, color: COLORS.textMuted, letterSpacing: 0.5 }}>{s.name}</span>
                   <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
-                    {s.dataSource === "live" && (
-                      <span style={{
-                        fontSize: 7, fontWeight: 700, letterSpacing: 0.5,
-                        padding: "1px 4px", borderRadius: 2,
-                        background: `${COLORS.green}25`, color: COLORS.green,
-                      }}>LIVE</span>
-                    )}
-                    {s.dataSource === "derived" && (
-                      <span style={{
-                        fontSize: 7, fontWeight: 700, letterSpacing: 0.5,
-                        padding: "1px 4px", borderRadius: 2,
-                        background: `${COLORS.blue}25`, color: COLORS.blue,
-                      }}>CALC</span>
-                    )}
+                    <span style={{
+                      fontSize: 7, fontWeight: 700, letterSpacing: 0.5,
+                      padding: "1px 4px", borderRadius: 2,
+                      background: s.dataSource === "live" ? `${COLORS.green}25`
+                        : s.dataSource === "derived" ? `${COLORS.blue}25`
+                        : `${COLORS.textMuted}15`,
+                      color: s.dataSource === "live" ? COLORS.green
+                        : s.dataSource === "derived" ? COLORS.blue
+                        : COLORS.textMuted,
+                    }}>
+                      {s.dataSource === "live" ? "LIVE" : s.dataSource === "derived" ? "CALC" : "REF"}
+                    </span>
                     <span style={{
                       fontSize: 8, fontWeight: 700, letterSpacing: 1,
                       padding: "1px 5px", borderRadius: 3,
@@ -1454,7 +1446,11 @@ function SignalMonitorTab() {
                   }}>
                     {trendArrow(s.trend)} {s.trend.toUpperCase()}
                   </span>
-                  <span style={{ fontSize: 9, color: COLORS.textMuted }}>{formatTime(s.lastUpdate)}</span>
+                  <span style={{ fontSize: 8, color: COLORS.textMuted }}>
+                    {s.dataSource === "live" || s.dataSource === "derived"
+                      ? (s.lastUpdate ? new Date(s.lastUpdate).toLocaleTimeString() : "fetching...")
+                      : s.source || "reference"}
+                  </span>
                 </div>
               </div>
             );
