@@ -514,7 +514,7 @@ function NodesTab() {
       color: COLORS.purple,
       description: "The US shale machine — the world's swing producer — is structurally constrained. Rig counts are down 33% from 2022 peaks. DUC (drilled uncompleted) inventories are at operational minimums. Even at $100 oil, it takes 6-9 months to meaningfully increase production. This inelasticity is the structural condition facing all existing domestic producers.",
       nodes: [
-        { name: "Baker Hughes Oil Rig Count", current: "397 rigs (-33% from peak)", signal: "moderate", detail: "Down from 750 at Dec 2022 peak. ~517 total rigs (397 oil-directed). No meaningful response yet to Hormuz. At $50 WTI, rig counts could fall to 360-370." },
+        { name: "Baker Hughes Oil Rig Count", current: "397 rigs (-47% from peak)", signal: "moderate", detail: "Down from 750 at Dec 2022 peak. ~517 total rigs (397 oil-directed). No meaningful response yet to Hormuz. At $50 WTI, rig counts could fall to 360-370." },
         { name: "DUC Inventory (Permian)", current: "~878 (halved from 2024)", signal: "high", detail: "Near operational minimum. Industry has been completing DUCs faster than drilling new ones for 18 months." },
         { name: "US Production Forecast", current: "~13.5M bpd → declining", signal: "moderate", detail: "Permian at ~6.6M bpd (45% of total). Diamondback CEO: 'At current oil prices, US shale oil production has likely peaked.' Breakevens ~$70/bbl avg, projected $95 by mid-2030s." },
         { name: "Frac Crew Availability", current: "Tight", signal: "moderate", detail: "Frac spread count has not increased with prices. Labor and equipment constraints limit response." },
