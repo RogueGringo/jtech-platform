@@ -203,7 +203,7 @@ const EFFECT_KEYWORDS = [
   // Supply/market structure effects (from Layer 2)
   "spare capacity", "contango", "ovx", "volatility regime",
   "depleted", "decline rate", "tier 1 inventory",
-  "lng", "liquefied natural gas", "force majeure",
+  "lng", "liquefied natural gas",
   // Domestic asset effects (from Layer 3)
   "lateral", "proppant", "ip-24", "eur", "frac",
   "pearsall", "utica", "eagle ford", "permian",

@@ -161,11 +161,11 @@ export default function PatternsTab() {
                 { event: "2003 Iraq Invasion", shock: "+30%", peak: "Pre-invasion", reversion: "Days (premium)", type: "Mixed", color: COLORS.blue },
                 { event: "2019 Abqaiq Attack", shock: "+15%", peak: "1 day", reversion: "~2 weeks", type: "Transitory", color: COLORS.green },
                 { event: "2022 Russia-Ukraine", shock: "+30%", peak: "~3 weeks", reversion: "~8 weeks", type: "Transitory", color: COLORS.orange },
-                { event: "2026 Iran/Hormuz (current)", shock: "+13% (day 1)", peak: "TBD", reversion: "TBD", type: "TBD — monitoring", color: COLORS.gold },
-              ].map((row, i) => (
-                <tr key={i} style={{
+                { event: "2026 Iran/Hormuz (current)", shock: "+13% (day 1)", peak: "TBD", reversion: "TBD", type: "TBD — monitoring", color: COLORS.gold, isCurrent: true },
+              ].map(row => (
+                <tr key={row.event} style={{
                   borderBottom: `1px solid ${COLORS.border}`,
-                  background: i === 6 ? `${COLORS.gold}08` : "transparent",
+                  background: row.isCurrent ? `${COLORS.gold}08` : "transparent",
                 }}>
                   <td style={{ padding: "8px 12px", color: row.color, fontWeight: 600 }}>{row.event}</td>
                   <td style={{ padding: "8px 12px", color: COLORS.text }}>{row.shock}</td>
