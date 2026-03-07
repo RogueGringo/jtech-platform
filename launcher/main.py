@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Valor Energy Partners — Zero-Setup Launcher
+JtechAi — Zero-Setup Launcher
 Clone → Run. Nothing else required.
 
 Usage:
@@ -64,15 +64,15 @@ def banner():
     clear()
     print()
     print(f"{C['C']}{C['BOLD']}")
-    print("  ██╗   ██╗ █████╗ ██╗      ██████╗ ██████╗ ")
-    print("  ██║   ██║██╔══██╗██║     ██╔═══██╗██╔══██╗")
-    print("  ██║   ██║███████║██║     ██║   ██║██████╔╝")
-    print("  ╚██╗ ██╔╝██╔══██║██║     ██║   ██║██╔══██╗")
-    print("   ╚████╔╝ ██║  ██║███████╗╚██████╔╝██║  ██║")
-    print(f"    ╚═══╝  ╚═╝  ╚═╝╚══════╝ ╚═════╝ ╚═╝  ╚═╝{C['X']}")
+    print("       ██╗████████╗███████╗ ██████╗██╗  ██╗     █████╗ ██╗")
+    print("       ██║╚══██╔══╝██╔════╝██╔════╝██║  ██║    ██╔══██╗██║")
+    print("       ██║   ██║   █████╗  ██║     ███████║    ███████║██║")
+    print("  ██   ██║   ██║   ██╔══╝  ██║     ██╔══██║    ██╔══██║██║")
+    print("  ╚█████╔╝   ██║   ███████╗╚██████╗██║  ██║    ██║  ██║██║")
+    print(f"   ╚════╝    ╚═╝   ╚══════╝ ╚═════╝╚═╝  ╚═╝    ╚═╝  ╚═╝╚═╝{C['X']}")
     print()
-    print(f"  {C['W']}Strategic Intelligence Brief{C['X']}")
-    print(f"  {C['D']}Effects-Based Analysis — Strait of Hormuz{C['X']}")
+    print(f"  {C['W']}All-Source Intelligence Platform{C['X']}")
+    print(f"  {C['D']}Effects-Based Analysis Engine{C['X']}")
     print(f"  {C['D']}{timestamp()}{C['X']}")
     print()
     hline("═", "C")
@@ -121,7 +121,7 @@ def show_menu():
 
 def prompt():
     try:
-        return input(f"  {C['C']}valor ▸{C['X']} ").strip().lower()
+        return input(f"  {C['C']}jtech ▸{C['X']} ").strip().lower()
     except EOFError:
         return "q"
 
@@ -544,7 +544,7 @@ def action_docker():
         _pause()
         return
 
-    image_name = "valor-intel"
+    image_name = "jtech-intel"
     log.step(f"Building Docker image '{image_name}'...")
     ok = _run_cmd(
         ["docker", "build", "-t", image_name, "."],
@@ -557,7 +557,7 @@ def action_docker():
 
     log.step("Starting container on :7860...")
     proc = _spawn(
-        ["docker", "run", "--rm", "-p", "7860:7860", "--name", "valor-intel-run", image_name],
+        ["docker", "run", "--rm", "-p", "7860:7860", "--name", "jtech-intel-run", image_name],
         cwd=ROOT, name="Docker Container"
     )
     log.complete(f"Container running — PID {proc.pid}")
@@ -790,7 +790,7 @@ ACTIONS = {
 def main():
     global ENV, NODE_AVAILABLE
 
-    parser = argparse.ArgumentParser(description="Valor Intelligence Launcher")
+    parser = argparse.ArgumentParser(description="JtechAi Intelligence Launcher")
     parser.add_argument("--env", default="local", choices=["local", "huggingface", "docker"])
     parser.add_argument("--node-available", default="false")
     parser.add_argument("--auto", help="Auto-run action number and exit")

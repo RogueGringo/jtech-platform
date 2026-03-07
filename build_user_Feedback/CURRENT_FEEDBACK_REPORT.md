@@ -1,6 +1,6 @@
 # Iran–oil nexus at phase-change: a multi-layer geopolitical-economic matrix
 
-**Valor Energy Partners — Strategic Intelligence Brief**
+**JtechAi — All-Source Intelligence Platform**
 **Report Date: February 28 – March 3, 2026** | **Classification: Effects-Based Analysis**
 **Last Updated: March 5, 2026**
 

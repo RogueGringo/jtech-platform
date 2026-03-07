@@ -1,5 +1,5 @@
 """
-Valor Intelligence — Full-stack HF Space.
+JtechAi Intelligence — Full-stack HF Space.
 
 Serves the dashboard frontend at / and live data at /api/*.
 One URL. One deployment. No CORS. Everything works.
@@ -24,7 +24,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 
-app = FastAPI(title="Valor Intelligence", version="1.0.0")
+app = FastAPI(title="JtechAi Intelligence", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,

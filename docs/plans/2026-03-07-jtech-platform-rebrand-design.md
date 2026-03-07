@@ -25,10 +25,10 @@ Future iterations will explore local LLM inference (via LM Studio) for learning 
 
 | From | To |
 |---|---|
-| Valor Energy Partners | JtechAi |
-| valor-strategic-intelligence (package name) | jtech-intel-platform |
-| Valor Intelligence (FastAPI title) | JtechAi Intelligence |
-| valor-proxy HF space URL | TBD (update when new space created) |
+| (old brand) | JtechAi |
+| (old package name) | jtech-intel-platform |
+| (old FastAPI title) | JtechAi Intelligence |
+| (old HF space URL) | TBD (update when new space created) |
 | No author attribution | mr.white@jtech.ai, co-authored with Claude Code |
 
 All files touched: README.md, package.json, package-lock.json, index.html, App.jsx, DataService.jsx, app.py, launcher/*.py, run.sh, Dockerfile, .github/workflows/*.yml
@@ -36,9 +36,9 @@ All files touched: README.md, package.json, package-lock.json, index.html, App.j
 ### 2.2 Removals
 
 **Terminated:**
-- PORTFOLIO MAP tab -- Valor-specific asset positioning (Kansas, Pearsall, Utica)
-- All Valor branding strings across all files
-- Feedback report Layer 3 domestic asset specifics tied to Valor's proprietary positions
+- PORTFOLIO MAP tab -- legacy asset positioning (Kansas, Pearsall, Utica)
+- All old branding strings across all files
+- Feedback report Layer 3 domestic asset specifics tied to proprietary positions
 - Hardcoded domain prose embedded directly in UI components
 - Inline style sprawl in monolithic App.jsx (~800+ lines)
 - VERIFY_SOURCES.portfolio entries
@@ -223,8 +223,8 @@ export default {
 
 ## 5. Success Criteria
 
-- [ ] Zero references to "Valor" in any file
-- [ ] No Portfolio Map tab or Valor-specific asset content
+- [ ] Zero references to old brand in any file
+- [ ] No Portfolio Map tab or legacy asset content
 - [ ] Engine, UI, and domain layers fully separated
 - [ ] Hormuz/Iran works identically as a domain config (no regression)
 - [ ] _template/ domain scaffold exists and is documented

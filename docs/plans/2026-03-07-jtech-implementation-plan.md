@@ -2,7 +2,7 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Rebrand from Valor Energy Partners to JtechAi, separate engine/UI/domain layers so new intelligence domains are a config folder, remove Valor-specific business content, add help hovers and regime indicator.
+**Goal:** Rebrand from legacy brand to JtechAi, separate engine/UI/domain layers so new intelligence domains are a config folder, remove legacy-specific business content, add help hovers and regime indicator.
 
 **Architecture:** Extract all domain-specific data (signals, keywords, thresholds, prose, sources) from monolithic App.jsx into `src/domains/hormuz-iran/`. Extract classification/severity/feed/price logic into `src/engine/`. Build generic UI shell in `src/ui/` that renders from config. Add HelpHover component and universal glossary.
 
@@ -554,7 +554,7 @@ EOF
 
 **Step 1: Create config.js**
 
-Move ALL domain-specific data arrays/objects into this single config file. This is the largest extraction — every signal, keyword, threshold, source, and verify link. Do NOT include the Portfolio tab or its verify sources. Remove Valor-specific Pearsall/Kansas/Ohio references from effect chain data.
+Move ALL domain-specific data arrays/objects into this single config file. This is the largest extraction — every signal, keyword, threshold, source, and verify link. Do NOT include the Portfolio tab or its verify sources. Remove legacy-specific Pearsall/Kansas/Ohio references from effect chain data.
 
 The config exports a default object with shape:
 ```js
@@ -602,18 +602,18 @@ EOF
 
 **Step 1: Create content.jsx**
 
-Export React components for domain-specific content: `ThesisContent`, `NodesContent`, `EffectChainContent`. These contain the Hormuz-specific prose, examples, and data tables. Remove all Valor-specific asset content (Pearsall boundary layer section, Eagle Ford netbacks, Kansas posted prices in effect chains). Keep the universal framework concepts (effects vs events, phase transitions, Gini trajectories).
+Export React components for domain-specific content: `ThesisContent`, `NodesContent`, `EffectChainContent`. These contain the Hormuz-specific prose, examples, and data tables. Remove all legacy-specific asset content (Pearsall boundary layer section, Eagle Ford netbacks, Kansas posted prices in effect chains). Keep the universal framework concepts (effects vs events, phase transitions, Gini trajectories).
 
-The Pearsall/MPD analog section in PlaybookTab (lines 1069-1111) is Valor-specific — remove it. The "Geometry Is the Same at Every Scale" closing section (lines 1113-1140) is universal — keep it but remove Valor asset references.
+The Pearsall/MPD analog section in PlaybookTab (lines 1069-1111) is legacy-specific — remove it. The "Geometry Is the Same at Every Scale" closing section (lines 1113-1140) is universal — keep it but remove legacy asset references.
 
-The "Price Architecture -> Domestic Economics" effect chain references Kansas Common and Eagle Ford specifically — generalize to "basin economics" without naming Valor's specific assets, or remove chain entries 3-4 (Kansas Common, Eagle Ford netback) from that chain.
+The "Price Architecture -> Domestic Economics" effect chain references Kansas Common and Eagle Ford specifically — generalize to "basin economics" without naming the old project's specific assets, or remove chain entries 3-4 (Kansas Common, Eagle Ford netback) from that chain.
 
 **Step 2: Commit**
 
 ```bash
 git add src/domains/hormuz-iran/content.jsx
 git commit -m "$(cat <<'EOF'
-extract: Hormuz-Iran domain content, Valor asset references removed
+extract: Hormuz-Iran domain content, legacy asset references removed
 
 Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
 EOF
@@ -1148,20 +1148,20 @@ EOF
 - `index.html`: title -> "JtechAi -- All-Source Intelligence Platform"
 - `package.json`: name -> "jtech-intel-platform", add author field "mr.white@jtech.ai"
 - `README.md`: Full rewrite -- JtechAi platform description, Hormuz-Iran as example domain
-- `hf-proxy/app.py`: FastAPI title -> "JtechAi Intelligence", docstring updated, remove "Valor"
-- `launcher/main.py`: all "Valor" -> "JtechAi", image name "jtech-intel", prompt "jtech"
+- `hf-proxy/app.py`: FastAPI title -> "JtechAi Intelligence", docstring updated, remove old brand
+- `launcher/main.py`: all old brand -> "JtechAi", image name "jtech-intel", prompt "jtech"
 - `launcher/__init__.py`: comment updated
 - `run.sh`: banner updated
-- `Dockerfile`: no Valor-specific changes needed (already generic)
-- `.github/workflows/hf-sync.yml`: check for Valor references
-- `build_user_Feedback/CURRENT_FEEDBACK_REPORT.md`: update header from Valor to JtechAi
+- `Dockerfile`: no legacy-specific changes needed (already generic)
+- `.github/workflows/hf-sync.yml`: check for old brand references
+- `build_user_Feedback/CURRENT_FEEDBACK_REPORT.md`: update header to JtechAi
 
 **Step 2: Commit**
 
 ```bash
 git add index.html package.json README.md hf-proxy/app.py launcher/ run.sh Dockerfile .github/ build_user_Feedback/
 git commit -m "$(cat <<'EOF'
-rebrand: Valor Energy Partners -> JtechAi across all files
+rebrand: legacy brand -> JtechAi across all files
 
 Author: mr.white@jtech.ai
 Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
@@ -1171,7 +1171,7 @@ EOF
 
 ---
 
-### Task 15: Delete old files and verify zero Valor references
+### Task 15: Delete old files and verify zero old-brand references
 
 **Files:**
 - Delete: `src/App.jsx` (replaced by `src/ui/App.jsx`)
@@ -1186,9 +1186,9 @@ EOF
 git rm src/App.jsx src/DataService.jsx src/theme.js src/LiveFeedTab.jsx src/PatternsTab.jsx
 ```
 
-**Step 2: Verify zero Valor references**
+**Step 2: Verify zero old-brand references**
 
-Run: `grep -ri "valor" --include="*.{js,jsx,py,md,html,json,yml,sh}" .`
+Run: `grep -ri "old-brand" --include="*.{js,jsx,py,md,html,json,yml,sh}" .`
 Expected: No matches (or only in git history / node_modules)
 
 **Step 3: Run build to verify no broken imports**
@@ -1201,7 +1201,7 @@ Expected: Build succeeds with no errors
 ```bash
 git add -A
 git commit -m "$(cat <<'EOF'
-cleanup: remove old monolithic files, verify zero Valor references
+cleanup: remove old monolithic files, verify zero old-brand references
 
 Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
 EOF
@@ -1247,9 +1247,9 @@ EOF
 
 Run: `npm install` (to update package-lock.json with new package name)
 
-**Step 2: Final grep for Valor**
+**Step 2: Final grep for old brand**
 
-Run: `grep -ri "valor" --include="*.{js,jsx,py,md,html,yml,sh}" . | grep -v node_modules | grep -v ".git/"`
+Run: `grep -ri "old-brand" --include="*.{js,jsx,py,md,html,yml,sh}" . | grep -v node_modules | grep -v ".git/"`
 Expected: Zero matches
 
 **Step 3: Final build**
@@ -1262,7 +1262,7 @@ Expected: Clean build, no warnings
 ```bash
 git add -A
 git commit -m "$(cat <<'EOF'
-chore: final verification, clean build, zero Valor references
+chore: final verification, clean build, zero old-brand references
 
 Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
 EOF

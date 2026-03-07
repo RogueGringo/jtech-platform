@@ -353,7 +353,7 @@ export function getNodesCategories() {
 
 // ─── EFFECT CHAINS ───────────────────────────────────────────
 // Effect chain data from PlaybookTab (App.jsx ~lines 889-1143).
-// Valor-specific content removed: Pearsall Boundary Layer section,
+// Proprietary content removed: Pearsall Boundary Layer section,
 // Kansas Common / Eagle Ford basin-specific chain entries.
 
 export function getEffectChains() {
