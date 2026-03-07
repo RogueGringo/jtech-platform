@@ -54,7 +54,7 @@ find_python() {
             local major minor
             major=$(echo "$ver" | cut -d. -f1)
             minor=$(echo "$ver" | cut -d. -f2)
-            if [ "$major" -ge 3 ] && [ "$minor" -ge 9 ]; then
+            if [ "$major" -gt 3 ] || { [ "$major" -eq 3 ] && [ "$minor" -ge 9 ]; }; then
                 echo "$cmd"
                 return 0
             fi
@@ -69,9 +69,13 @@ ensure_pip_pkg() {
     local import_name="${2:-$1}"
     if ! "$PYTHON" -c "import $import_name" &>/dev/null; then
         info "Installing $pkg..."
-        "$PYTHON" -m pip install --quiet "$pkg" 2>/dev/null || \
-        "$PYTHON" -m pip install --quiet --user "$pkg" 2>/dev/null || \
-        "$PYTHON" -m pip install --quiet --break-system-packages "$pkg" 2>/dev/null
+        if "$PYTHON" -m pip install --quiet "$pkg" 2>/dev/null || \
+           "$PYTHON" -m pip install --quiet --user "$pkg" 2>/dev/null; then
+            : # installation succeeded
+        else
+            "$PYTHON" -m pip install "$pkg" || \
+                fail "Unable to install $pkg via pip. See the pip error output above."
+        fi
     fi
 }
 
@@ -100,7 +104,6 @@ step "Bootstrapping launcher dependencies..."
 ensure_pip_pkg "psutil"
 ensure_pip_pkg "feedparser"
 ensure_pip_pkg "yfinance"
-ensure_pip_pkg "requests"
 ok "Core dependencies ready"
 
 # ── Check Node.js for frontend builds ──

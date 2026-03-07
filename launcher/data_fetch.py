@@ -21,7 +21,7 @@ except ImportError:
 
 from launcher.display import C, progress_bar, SequenceLog, sparkline, ascii_chart
 
-# ── Feed sources (mirrors hf-proxy/app.py) ────────────────────────
+# ── Feed sources (similar to hf-proxy/app.py; IDs may differ) ────
 FEED_SOURCES = [
     {"id": "google-hormuz", "name": "Google News — Hormuz",
      "url": "https://news.google.com/rss/search?q=strait+of+hormuz+oil+tanker&hl=en-US&gl=US&ceid=US:en",
@@ -205,11 +205,14 @@ def fetch_prices(log: SequenceLog):
     if "Brent Crude" in prices and "WTI Crude" in prices:
         brent = prices["Brent Crude"]["price"]
         wti = prices["WTI Crude"]["price"]
-        prices["Brent-WTI Spread"] = {"price": round(brent - wti, 2), "history": [], "labels": []}
-        prices["KC Posted"] = {"price": round(wti - 13.25, 2), "history": [], "labels": []}
+        prices["Brent-WTI Spread"] = {"price": round(brent - wti, 2), "history": [], "labels": [], "derived": True}
+        prices["KC Posted"] = {"price": round(wti - 13.25, 2), "history": [], "labels": [], "derived": True}
 
-    log.complete(f"Prices: {len([p for p in prices.values() if p.get('price')])} "
-                 f"commodities fetched")
+    live_count = sum(1 for p in prices.values() if not p.get("derived"))
+    log.complete(
+        f"Prices: {live_count} live + "
+        f"{len(prices) - live_count} derived price entries prepared"
+    )
     return prices
 
 

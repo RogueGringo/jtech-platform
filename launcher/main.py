@@ -29,7 +29,7 @@ from launcher.display import (
 from launcher.monitor import ResourceMonitor, ProcessTracker
 from launcher.data_fetch import (
     fetch_feeds, fetch_prices,
-    render_price_dashboard, render_feed_summary, render_price_charts,
+    render_price_dashboard, render_feed_summary,
 )
 
 # ── Globals ────────────────────────────────────────────────────────
@@ -45,6 +45,11 @@ NODE_AVAILABLE = False
 def _shutdown(sig, frame):
     print(f"\n  {C['Y']}Shutting down...{C['X']}")
     MONITOR.stop()
+    if os.name != "nt":
+        try:
+            os.killpg(os.getpgid(0), signal.SIGTERM)
+        except Exception:
+            pass
     sys.exit(0)
 
 signal.signal(signal.SIGINT, _shutdown)
@@ -139,15 +144,17 @@ def action_full_stack():
         return
 
     log.step("Installing npm dependencies...")
-    _run_cmd(["npm", "install", "--prefer-offline"], cwd=ROOT, log=log, label="npm install")
+    success = _run_cmd(["npm", "install", "--prefer-offline"], cwd=ROOT, log=log, label="npm install")
+    if not success:
+        log.warn("npm install failed — aborting full stack launch.")
+        return
 
     # Start backend
     log.step("Starting FastAPI backend on :7860...")
-    be_proc = _spawn(
-        [sys.executable, "-m", "uvicorn", "app:app", "--host", "0.0.0.0",
-         "--port", "7860", "--reload"],
-        cwd=HF_PROXY, name="FastAPI Backend"
-    )
+    be_cmd = [sys.executable, "-m", "uvicorn", "app:app", "--host", "0.0.0.0", "--port", "7860"]
+    if ENV == "local":
+        be_cmd.append("--reload")
+    be_proc = _spawn(be_cmd, cwd=HF_PROXY, name="FastAPI Backend")
     log.complete(f"Backend PID {be_proc.pid}")
 
     # Start frontend
@@ -180,16 +187,18 @@ def action_backend():
 
 def _launch_backend(log):
     log.step("Checking backend dependencies...")
-    _run_cmd([sys.executable, "-m", "pip", "install", "-q", "-r",
-              str(HF_PROXY / "requirements.txt")],
-             cwd=HF_PROXY, log=log, label="pip install")
+    ok = _run_cmd([sys.executable, "-m", "pip", "install", "-q", "-r",
+                   str(HF_PROXY / "requirements.txt")],
+                  cwd=HF_PROXY, log=log, label="pip install")
+    if not ok:
+        log.fail("Backend dependency installation failed — aborting backend launch.")
+        return
 
     log.step("Starting FastAPI on :7860...")
-    proc = _spawn(
-        [sys.executable, "-m", "uvicorn", "app:app", "--host", "0.0.0.0",
-         "--port", "7860", "--reload"],
-        cwd=HF_PROXY, name="FastAPI Backend"
-    )
+    cmd = [sys.executable, "-m", "uvicorn", "app:app", "--host", "0.0.0.0", "--port", "7860"]
+    if ENV == "local":
+        cmd.append("--reload")
+    proc = _spawn(cmd, cwd=HF_PROXY, name="FastAPI Backend")
     log.complete(f"Backend running — PID {proc.pid}")
 
     print()
@@ -421,6 +430,53 @@ def action_deploy_hf():
     log.complete(f"Build output: {file_count} files in dist/")
 
     log.step("Triggering HF sync workflow (if configured)...")
+
+    # Verify current branch is main
+    try:
+        branch_result = subprocess.run(
+            ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+            cwd=ROOT, capture_output=True, text=True, timeout=10
+        )
+        current_branch = branch_result.stdout.strip()
+        if current_branch != "main":
+            log.warn(f"Current branch is '{current_branch}', not 'main'.")
+            print(f"  {C['Y']}Push to origin/main anyway? This may be unintentional. "
+                  f"[y/N]: {C['X']}", end="", flush=True)
+            confirm = input().strip().lower()
+            if confirm != "y":
+                log.step("Push cancelled.", "info")
+                _pause()
+                return
+    except Exception as e:
+        log.warn(f"Could not determine current branch: {e}")
+
+    # Verify working tree is clean
+    try:
+        status_result = subprocess.run(
+            ["git", "status", "--porcelain"],
+            cwd=ROOT, capture_output=True, text=True, timeout=10
+        )
+        if status_result.stdout.strip():
+            log.warn("Working tree has uncommitted changes.")
+            print(f"  {C['Y']}Push anyway (uncommitted changes will NOT be included)? "
+                  f"[y/N]: {C['X']}", end="", flush=True)
+            confirm = input().strip().lower()
+            if confirm != "y":
+                log.step("Push cancelled.", "info")
+                _pause()
+                return
+    except Exception as e:
+        log.warn(f"Could not check working tree status: {e}")
+
+    # Final confirmation
+    print(f"  {C['Y']}Push to origin/main to trigger HF deploy? [y/N]: {C['X']}",
+          end="", flush=True)
+    confirm = input().strip().lower()
+    if confirm != "y":
+        log.step("Push cancelled.", "info")
+        _pause()
+        return
+
     try:
         result = subprocess.run(
             ["git", "push", "origin", "main"],
@@ -662,23 +718,45 @@ def _wait_with_monitor(log):
     print()
 
     try:
-        while True:
-            # Show mini status every 5s
+        if os.name == "nt":
+            import msvcrt
+            last_status = time.time()
+            while True:
+                if msvcrt.kbhit():
+                    ch = msvcrt.getwch()
+                    if ch in ("\r", "\n"):
+                        return
+                now = time.time()
+                if now - last_status >= 5:
+                    last_status = now
+                    s = MONITOR.snapshot()
+                    cpu_c = "G" if s["cpu_pct"] < 60 else ("Y" if s["cpu_pct"] < 85 else "R")
+                    mem_c = "G" if s["mem_pct"] < 60 else ("Y" if s["mem_pct"] < 85 else "R")
+                    print(
+                        f"\r  {C['D']}[{log.elapsed():7.1f}s]{C['X']} "
+                        f"CPU {C[cpu_c]}{s['cpu_pct']:4.1f}%{C['X']} │ "
+                        f"RAM {C[mem_c]}{s['mem_pct']:4.1f}%{C['X']} │ "
+                        f"Net ↓{s['net_rx_mbps']:.2f}MB/s  ",
+                        end="",
+                        flush=True,
+                    )
+                time.sleep(0.1)
+        else:
             import select
-            rlist, _, _ = select.select([sys.stdin], [], [], 5)
-            if rlist:
-                sys.stdin.readline()
-                return
+            while True:
+                rlist, _, _ = select.select([sys.stdin], [], [], 5)
+                if rlist:
+                    sys.stdin.readline()
+                    return
 
-            # Mini status line
-            s = MONITOR.snapshot()
-            cpu_c = "G" if s["cpu_pct"] < 60 else ("Y" if s["cpu_pct"] < 85 else "R")
-            mem_c = "G" if s["mem_pct"] < 60 else ("Y" if s["mem_pct"] < 85 else "R")
-            print(f"\r  {C['D']}[{log.elapsed():7.1f}s]{C['X']} "
-                  f"CPU {C[cpu_c]}{s['cpu_pct']:4.1f}%{C['X']} │ "
-                  f"RAM {C[mem_c]}{s['mem_pct']:4.1f}%{C['X']} │ "
-                  f"Net ↓{s['net_rx_mbps']:.2f}MB/s  ",
-                  end="", flush=True)
+                s = MONITOR.snapshot()
+                cpu_c = "G" if s["cpu_pct"] < 60 else ("Y" if s["cpu_pct"] < 85 else "R")
+                mem_c = "G" if s["mem_pct"] < 60 else ("Y" if s["mem_pct"] < 85 else "R")
+                print(f"\r  {C['D']}[{log.elapsed():7.1f}s]{C['X']} "
+                      f"CPU {C[cpu_c]}{s['cpu_pct']:4.1f}%{C['X']} │ "
+                      f"RAM {C[mem_c]}{s['mem_pct']:4.1f}%{C['X']} │ "
+                      f"Net ↓{s['net_rx_mbps']:.2f}MB/s  ",
+                      end="", flush=True)
     except (KeyboardInterrupt, EOFError):
         print()
         return

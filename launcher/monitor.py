@@ -2,17 +2,14 @@
 Resource monitor — live system metrics with history tracking and graphical display.
 """
 
-import os
 import time
 import threading
 from collections import deque
-from datetime import datetime, timezone
 
 import psutil
 
 from launcher.display import (
-    C, clear, box_top, box_row, box_bot, bar_gauge, sparkline,
-    ascii_chart, status_table, hline, timestamp,
+    C, bar_gauge, sparkline, ascii_chart, status_table,
 )
 
 
@@ -35,13 +32,11 @@ class ResourceMonitor:
         self.mem_history = {k: deque(maxlen=60) for k in self.INTERVALS}
         self.net_rx_history = {k: deque(maxlen=60) for k in self.INTERVALS}
         self.net_tx_history = {k: deque(maxlen=60) for k in self.INTERVALS}
-        self.disk_io_history = {k: deque(maxlen=60) for k in self.INTERVALS}
         self._lock = threading.Lock()
         self._running = False
         self._thread = None
         self._last_sample = {k: 0 for k in self.INTERVALS}
         self._last_net = None
-        self._last_disk_io = None
 
         # Snapshot
         self.cpu_pct = 0.0
