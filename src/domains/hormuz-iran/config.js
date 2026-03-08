@@ -179,6 +179,48 @@ export default {
     kcposted: (prices) => prices.wti ? +(prices.wti.price - 13.25).toFixed(2) : null,
   },
 
+  phases: [
+    {
+      id: "baseline",
+      name: "Baseline Operations",
+      description: "Normal maritime commerce, full insurance coverage, standard pricing",
+      requiredSignals: [],
+      color: "green",
+    },
+    {
+      id: "elevated",
+      name: "Elevated Tension",
+      description: "Insurance tightening, geopolitical risk premiums rising, proxy activity increasing",
+      requiredSignals: [
+        { signalId: "georisk", minSeverity: "moderate" },
+        { signalId: "proxyactive", minSeverity: "high" },
+      ],
+      color: "orange",
+    },
+    {
+      id: "boundary",
+      name: "Boundary Layer",
+      description: "Insurance partially withdrawn, transit volumes declining, volatility spiking",
+      requiredSignals: [
+        { signalId: "pni", minSeverity: "moderate" },
+        { signalId: "ovx", minSeverity: "moderate" },
+        { signalId: "georisk", minSeverity: "high" },
+      ],
+      color: "orange",
+    },
+    {
+      id: "crisis",
+      name: "Phase Transition — Crisis",
+      description: "Insurance withdrawn, transit collapsed, price regime discontinuity, supply emergency",
+      requiredSignals: [
+        { signalId: "pni", minSeverity: "critical" },
+        { signalId: "ais", minSeverity: "critical" },
+        { signalId: "brent", minSeverity: "high" },
+      ],
+      color: "red",
+    },
+  ],
+
   chainSignalMap: {
     "Maritime Insurance Cascade": {
       nodes: [
