@@ -19,8 +19,12 @@ export function cameoToSeverity(rootCode) {
 }
 
 export function cameoToVector(rootCode) {
-  if (rootCode >= 15) return "dissolution";
-  if (rootCode <= 9) return "propagation";
+  // Strict IE Manifold thresholds:
+  // Dissolution ONLY on genuine cognitive breakdown events (17-20)
+  // Propagation ONLY on active cooperation/reinforcement (01-05)
+  // Everything else is transition noise (06-16)
+  if (rootCode >= 17) return "dissolution";
+  if (rootCode <= 5) return "propagation";
   return "transition";
 }
 
@@ -45,13 +49,14 @@ export function computeEventEntropy(events) {
 }
 
 /**
- * Prime density: % of events at CAMEO 15+ (material conflict + violence).
+ * Prime density: % of events at CAMEO 17+ (coerce + assault + fight + mass violence).
+ * Strict threshold — only genuine cognitive breakdown events count as primes.
  */
 export function computePrimeDensity(events) {
   if (events.length === 0) return 0;
   const primeCount = events.filter(e => {
     const root = e.cameoRoot || Math.floor(e.EventRootCode || 0);
-    return root >= 15;
+    return root >= 17;
   }).length;
   return primeCount / events.length;
 }
