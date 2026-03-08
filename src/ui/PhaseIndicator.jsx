@@ -2,8 +2,8 @@ import { useMemo } from "react";
 import { COLORS, severityColor } from "./DesignSystem.js";
 import { assessPhase } from "../engine/patterns.js";
 
-export default function PhaseIndicator({ signals, phases }) {
-  const assessment = useMemo(() => assessPhase(signals, phases), [signals, phases]);
+export default function PhaseIndicator({ signals, phases, transitionIntensity }) {
+  const assessment = useMemo(() => assessPhase(signals, phases, transitionIntensity), [signals, phases, transitionIntensity]);
   const { currentPhase, phaseScores } = assessment;
 
   if (!phaseScores || phaseScores.length === 0) return null;
@@ -104,6 +104,59 @@ export default function PhaseIndicator({ signals, phases }) {
           {assessment.transitionIndicators.map(t => (
             <div key={t.id} style={{ fontSize: 11, color: COLORS.textDim }}>{t.name}: {t.met}/{t.total} conditions ({t.score}%)</div>
           ))}
+        </div>
+      )}
+
+      {assessment.transitionIntensity && assessment.transitionIntensity.normalized > 0 && (
+        <div style={{
+          marginTop: 12, padding: "12px 16px", borderRadius: 8,
+          background: COLORS.bg, border: `1px solid ${COLORS.border}`,
+        }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+            <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1, color: COLORS.gold }}>
+              TRANSITION INTENSITY
+            </span>
+            <span style={{
+              fontSize: 10, fontWeight: 700, letterSpacing: 1,
+              padding: "2px 8px", borderRadius: 4,
+              color: assessment.transitionIntensity.label === "PHASE TRANSITION" ? COLORS.red
+                : assessment.transitionIntensity.label === "TURBULENCE" ? COLORS.orange : COLORS.green,
+              background: (assessment.transitionIntensity.label === "PHASE TRANSITION" ? COLORS.red
+                : assessment.transitionIntensity.label === "TURBULENCE" ? COLORS.orange : COLORS.green) + "15",
+            }}>
+              {assessment.transitionIntensity.label}
+            </span>
+          </div>
+          <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 9, color: COLORS.textMuted, marginBottom: 4 }}>MAGNITUDE</div>
+              <div style={{ height: 6, borderRadius: 3, background: COLORS.bg, border: `1px solid ${COLORS.border}`, overflow: "hidden" }}>
+                <div style={{
+                  height: "100%", borderRadius: 3,
+                  width: Math.round(assessment.transitionIntensity.normalized * 100) + "%",
+                  background: COLORS.orange, transition: "width 0.5s",
+                }} />
+              </div>
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 9, color: COLORS.textMuted, marginBottom: 4 }}>ALIGNMENT</div>
+              <div style={{ height: 6, borderRadius: 3, background: COLORS.bg, border: `1px solid ${COLORS.border}`, overflow: "hidden" }}>
+                <div style={{
+                  height: "100%", borderRadius: 3,
+                  width: Math.round(assessment.transitionIntensity.alignment * 100) + "%",
+                  background: COLORS.blue, transition: "width 0.5s",
+                }} />
+              </div>
+            </div>
+            <div style={{ textAlign: "right", minWidth: 80 }}>
+              <div style={{ fontSize: 16, fontWeight: 800, color: COLORS.text }}>
+                {Math.round(assessment.transitionIntensity.normalized * 100)}%
+              </div>
+              <div style={{ fontSize: 9, color: COLORS.textMuted }}>
+                {Math.round(assessment.transitionIntensity.alignment * 100)}% aligned
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

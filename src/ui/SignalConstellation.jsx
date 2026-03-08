@@ -15,7 +15,10 @@ export default function SignalConstellation({ signals, coherence, categories, on
   const sectorAngle = (2 * Math.PI) / (categoryKeys.length || 1);
 
   const nodes = useMemo(() => {
-    const coherenceFactor = 1 - (coherence.score / 100) * 0.5;
+    const gini = coherence.gini !== undefined ? coherence.gini : 0.5;
+    // Low gini (signals agree) -> nodes closer to center (tighter constellation)
+    // High gini (signals disagree) -> nodes spread out
+    const coherenceFactor = 0.5 + gini * 0.5;
     return signals.map((s) => {
       const catIdx = categoryKeys.indexOf(s.category);
       if (catIdx === -1) return null;
@@ -35,7 +38,7 @@ export default function SignalConstellation({ signals, coherence, categories, on
         catColor: COLORS[categories[s.category]?.color] || COLORS.textMuted,
       };
     }).filter(Boolean);
-  }, [signals, coherence.score, categoryKeys, categories, sectorAngle]);
+  }, [signals, coherence.gini, categoryKeys, categories, sectorAngle]);
 
   const categoryLabels = useMemo(() => {
     return categoryKeys.map((key, i) => {

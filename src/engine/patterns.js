@@ -1,6 +1,6 @@
 const SEVERITY_RANK = { critical: 4, high: 3, moderate: 2, watch: 1 };
 
-export function assessPhase(signals, phases) {
+export function assessPhase(signals, phases, transitionIntensity) {
   if (!phases || phases.length === 0) return { currentPhase: null, phaseScores: [], transitionIndicators: [] };
 
   const signalMap = {};
@@ -36,5 +36,5 @@ export function assessPhase(signals, phases) {
     .filter(p => p.total > 0 && p.score > 0 && p.score < 100)
     .map(p => ({ id: p.id, name: p.name, score: p.score, met: p.met, total: p.total }));
 
-  return { currentPhase, phaseScores, transitionIndicators };
+  return { currentPhase, phaseScores, transitionIndicators, transitionIntensity: transitionIntensity || null };
 }

@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { COLORS, severityColor, trendArrow } from "./DesignSystem.js";
 import { classifyText } from "../engine/classify.js";
 import RegimeBadge from "./RegimeBadge.jsx";
@@ -6,7 +6,7 @@ import Term from "./Term.jsx";
 import SourceVerifyLink from "./SourceVerifyLink.jsx";
 import SignalConstellation from "./SignalConstellation.jsx";
 
-export default function SignalMonitor({ config, terms, signals, coherence, priceStatus }) {
+export default function SignalMonitor({ config, terms, signals, coherence, priceStatus, activityState, transitionIntensity }) {
   const [filter, setFilter] = useState({ severity: "all", category: "all" });
   const [analyzerText, setAnalyzerText] = useState("");
   const [analysisResult, setAnalysisResult] = useState(null);
@@ -18,8 +18,9 @@ export default function SignalMonitor({ config, terms, signals, coherence, price
     categoryMeta[key] = { label: meta.label, color: COLORS[meta.color] || COLORS.textMuted };
   }
 
-  const { score: coherenceScore, criticalCount, highCount } = coherence;
-  const regimeColor = coherenceScore >= 75 ? COLORS.red : coherenceScore >= 50 ? COLORS.orange : COLORS.green;
+  const { gini, meanSeverity, coherenceScore, regime, criticalCount, highCount } = coherence;
+  const REGIME_COLORS = { "STABLE": COLORS.green, "TRANSIENT SPIKE": COLORS.orange, "BOUNDARY LAYER": COLORS.orange, "CRISIS CONSOLIDATION": COLORS.red };
+  const regimeColor = REGIME_COLORS[regime.label] || COLORS.textMuted;
 
   // Filter signals
   const filteredSignals = signals.filter(s => {
@@ -41,6 +42,12 @@ export default function SignalMonitor({ config, terms, signals, coherence, price
 
   const liveSignalCount = signals.filter(s => s.dataSource === "live" || s.dataSource === "derived").length;
   const referenceSignalCount = signals.filter(s => s.dataSource === "reference").length;
+
+  const activityMap = useMemo(() => {
+    const map = {};
+    if (activityState) for (const a of activityState) map[a.id] = a;
+    return map;
+  }, [activityState]);
 
   return (
     <div style={{ padding: "32px", maxWidth: 1200 }}>
@@ -112,7 +119,7 @@ export default function SignalMonitor({ config, terms, signals, coherence, price
               display: "flex", alignItems: "center", justifyContent: "center",
               fontSize: 11, fontWeight: 700, color: COLORS.text,
             }}>
-              {coherenceScore}% CONSOLIDATION
+              G={gini.toFixed(2)} · x̄={meanSeverity.toFixed(1)} · C={coherenceScore}%
             </div>
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: COLORS.textMuted }}>
@@ -124,11 +131,13 @@ export default function SignalMonitor({ config, terms, signals, coherence, price
             background: `${regimeColor}10`, border: `1px solid ${regimeColor}25`,
             fontSize: 12, color: COLORS.textDim, lineHeight: 1.5,
           }}>
-            {coherenceScore >= 75
-              ? <>Positive Gini trajectory. <strong style={{ color: COLORS.red }}>{criticalCount} critical</strong> and <strong style={{ color: COLORS.orange }}>{highCount} high</strong> signals consolidating — independent systems confirm structural phase transition.</>
-              : coherenceScore >= 50
-                ? <>Intermediate coherence. Signals partially aligned — monitoring for consolidation or dispersion trend.</>
-                : <>Negative Gini trajectory. Signals dispersing — current perturbation appears transient, not structural.</>
+            {regime.label === "CRISIS CONSOLIDATION"
+              ? <>Low Gini ({gini.toFixed(2)}) + high mean severity ({meanSeverity.toFixed(1)}) — <strong style={{ color: COLORS.red }}>{criticalCount} critical</strong> and <strong style={{ color: COLORS.orange }}>{highCount} high</strong> signals consolidating. Independent categories agree on crisis state.</>
+              : regime.label === "BOUNDARY LAYER"
+                ? <>High Gini ({gini.toFixed(2)}) + high mean severity ({meanSeverity.toFixed(1)}) — severity concentrated in few signals. System at boundary between regimes.</>
+                : regime.label === "TRANSIENT SPIKE"
+                  ? <>High Gini ({gini.toFixed(2)}) + low mean severity ({meanSeverity.toFixed(1)}) — isolated signals elevated but no structural shift. Likely transient.</>
+                  : <>Low Gini ({gini.toFixed(2)}) + low mean severity ({meanSeverity.toFixed(1)}) — signals uniformly calm. System stable.</>
             }
           </div>
         </div>
@@ -259,6 +268,22 @@ export default function SignalMonitor({ config, terms, signals, coherence, price
                       : s.source || "reference"}
                   </span>
                 </div>
+                {activityMap[s.id] && activityMap[s.id].deltaFromBaseline !== 0 && (
+                  <div style={{
+                    marginTop: 6, padding: "3px 8px", borderRadius: 4, fontSize: 9, fontWeight: 700,
+                    letterSpacing: 0.5,
+                    background: activityMap[s.id].deltaFromBaseline > 0 ? `${COLORS.red}12` : `${COLORS.green}12`,
+                    color: activityMap[s.id].deltaFromBaseline > 0 ? COLORS.red : COLORS.green,
+                  }}>
+                    {activityMap[s.id].deltaFromBaseline > 0 ? "\u25B2" : "\u25BC"}{" "}
+                    {Math.abs(activityMap[s.id].deltaFromBaseline)} from baseline
+                    {activityMap[s.id].deltaFromPrev !== 0 && (
+                      <span style={{ marginLeft: 6, opacity: 0.7 }}>
+                        ({activityMap[s.id].deltaFromPrev > 0 ? "+" : ""}{activityMap[s.id].deltaFromPrev} prev)
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })}

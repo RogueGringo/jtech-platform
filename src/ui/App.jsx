@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import Header from "./Header.jsx";
 import { COLORS } from "./DesignSystem.js";
 import { computeSeverity, computeCoherence } from "../engine/signals.js";
+import { createHistoryBuffer, pushSnapshot, computeActivityState, computeTransitionIntensity } from "../engine/dynamics.js";
 import { fetchCommodityPrices } from "../engine/prices.js";
 import domainConfig from "../domains/hormuz-iran/config.js";
 import * as domainContent from "../domains/hormuz-iran/content.jsx";
@@ -28,6 +29,10 @@ export default function App() {
     }))
   );
   const [priceStatus, setPriceStatus] = useState("loading");
+
+  const [historyBuffer, setHistoryBuffer] = useState(createHistoryBuffer);
+  const baselineSignals = useMemo(() => domainConfig.signals || [], []);
+  const categoryKeys = useMemo(() => Object.keys(domainConfig.categories || {}), []);
 
   // Fetch commodity prices at app level — shared across all tabs
   useEffect(() => {
@@ -67,14 +72,29 @@ export default function App() {
   }, []);
 
   // Compute coherence from current signal state
-  const coherence = useMemo(() => computeCoherence(signals), [signals]);
+  const coherence = useMemo(() => computeCoherence(signals, categoryKeys), [signals, categoryKeys]);
+
+  // Push snapshot to history buffer whenever signals change
+  useEffect(() => {
+    setHistoryBuffer(prev => pushSnapshot({ ...prev, snapshots: [...prev.snapshots] }, signals));
+  }, [signals]);
+
+  // Compute activity:state deltas and transition intensity
+  const activityState = useMemo(
+    () => computeActivityState(signals, historyBuffer, baselineSignals),
+    [signals, historyBuffer, baselineSignals]
+  );
+  const transitionIntensity = useMemo(
+    () => computeTransitionIntensity(signals, baselineSignals),
+    [signals, baselineSignals]
+  );
 
   const tabContent = {
     thesis: <ThesisView config={domainConfig} content={domainContent} terms={allTerms} />,
     nodes: <NodesView config={domainConfig} content={domainContent} terms={allTerms} />,
-    patterns: <PatternsView config={domainConfig} content={domainContent} terms={allTerms} signals={signals} />,
+    patterns: <PatternsView config={domainConfig} content={domainContent} terms={allTerms} signals={signals} transitionIntensity={transitionIntensity} />,
     playbook: <EffectChainView config={domainConfig} content={domainContent} terms={allTerms} signals={signals} />,
-    monitor: <SignalMonitor config={domainConfig} terms={allTerms} signals={signals} coherence={coherence} priceStatus={priceStatus} />,
+    monitor: <SignalMonitor config={domainConfig} terms={allTerms} signals={signals} coherence={coherence} priceStatus={priceStatus} activityState={activityState} transitionIntensity={transitionIntensity} />,
     feed: <LiveFeed config={domainConfig} terms={allTerms} />,
   };
 

@@ -2,9 +2,8 @@ import { COLORS } from "./DesignSystem.js";
 import Term from "./Term.jsx";
 
 export default function Header({ config, activeTab, setActiveTab, terms = {}, coherence }) {
-  const regimeColor = coherence
-    ? (coherence.score >= 75 ? COLORS.red : coherence.score >= 50 ? COLORS.orange : COLORS.green)
-    : COLORS.textMuted;
+  const REGIME_COLORS = { "STABLE": COLORS.green, "TRANSIENT SPIKE": COLORS.orange, "BOUNDARY LAYER": COLORS.orange, "CRISIS CONSOLIDATION": COLORS.red };
+  const regimeColor = coherence?.regime ? (REGIME_COLORS[coherence.regime.label] || COLORS.textMuted) : COLORS.textMuted;
   const tabs = config.tabs || [];
   return (
     <div style={{ borderBottom: `1px solid ${COLORS.border}`, padding: "24px 32px 0" }}>
