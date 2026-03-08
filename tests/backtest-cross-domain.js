@@ -11,6 +11,7 @@
  *   2. Financial (2008 GFC — Lehman, Bear Stearns, QE)
  *   3. Pandemic (2020 COVID — demand destruction, negative WTI)
  *   4. Banking (2023 SVB — bank run, BTFP resolution)
+ *   5. GDELT IE (2022 Russia-Ukraine — linguistic-origin data)
  *
  * Run: node tests/backtest-cross-domain.js
  */
@@ -31,6 +32,7 @@ const backtests = [
   { name: "2008 GFC", file: "backtest-gfc.js" },
   { name: "2020 COVID", file: "backtest-covid.js" },
   { name: "2023 SVB", file: "backtest-svb.js" },
+  { name: "GDELT IE (2022 Ukraine)", file: "backtest-gdelt.js" },
 ];
 
 console.log("=".repeat(80));
