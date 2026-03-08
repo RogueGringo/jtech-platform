@@ -1,73 +1,21 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { COLORS, severityColor, trendArrow } from "./DesignSystem.js";
-import { computeSeverity, computeCoherence } from "../engine/signals.js";
-import { fetchCommodityPrices } from "../engine/prices.js";
 import { classifyText } from "../engine/classify.js";
 import RegimeBadge from "./RegimeBadge.jsx";
 import Term from "./Term.jsx";
 import SourceVerifyLink from "./SourceVerifyLink.jsx";
 
-export default function SignalMonitor({ config, terms }) {
-  const livePriceIds = new Set(config.livePriceIds || []);
-
-  const [signals, setSignals] = useState(() =>
-    (config.signals || []).map(s => ({
-      ...s,
-      dataSource: livePriceIds.has(s.id) ? "pending" : "reference",
-      lastUpdate: null,
-    }))
-  );
+export default function SignalMonitor({ config, terms, signals, coherence, priceStatus }) {
   const [filter, setFilter] = useState({ severity: "all", category: "all" });
   const [analyzerText, setAnalyzerText] = useState("");
   const [analysisResult, setAnalysisResult] = useState(null);
-  const [priceStatus, setPriceStatus] = useState("loading");
 
-  // Resolve category meta from config — map color names to COLORS values
+  // Resolve category meta from config
   const categoryMeta = {};
   for (const [key, meta] of Object.entries(config.categories || {})) {
     categoryMeta[key] = { label: meta.label, color: COLORS[meta.color] || COLORS.textMuted };
   }
 
-  // Fetch real commodity prices — the ONLY live data source
-  useEffect(() => {
-    let cancelled = false;
-    async function fetchPrices() {
-      try {
-        const data = await fetchCommodityPrices(config.priceSymbols || {}, config.derivedPrices || {});
-        if (cancelled) return;
-        setPriceStatus(data.source);
-
-        if (data.source === "live" || data.source === "cached") {
-          setSignals(prev => prev.map(s => {
-            const priceInfo = data.prices[s.id];
-            if (!priceInfo || priceInfo.price === undefined) return s;
-            const newNumeric = priceInfo.price;
-            let formatted;
-            if (s.unit === "/bbl" || s.id === "spread") formatted = "$" + newNumeric.toFixed(2);
-            else if (s.unit === "%") formatted = Math.round(newNumeric) + "%";
-            else formatted = newNumeric.toFixed(1);
-            const newSeverity = computeSeverity(s.id, newNumeric, s.severity, config.severityThresholds || {});
-            return {
-              ...s,
-              numeric: newNumeric,
-              value: formatted,
-              severity: newSeverity,
-              lastUpdate: new Date(),
-              dataSource: priceInfo.source === "live" ? "live" : "derived",
-            };
-          }));
-        }
-      } catch {
-        if (!cancelled) setPriceStatus("error");
-      }
-    }
-    fetchPrices();
-    const interval = setInterval(fetchPrices, 2 * 60 * 1000);
-    return () => { cancelled = true; clearInterval(interval); };
-  }, []);
-
-  // Compute coherence score
-  const coherence = computeCoherence(signals);
   const { score: coherenceScore, criticalCount, highCount } = coherence;
   const regimeColor = coherenceScore >= 75 ? COLORS.red : coherenceScore >= 50 ? COLORS.orange : COLORS.green;
 
