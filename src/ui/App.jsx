@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import Header from "./Header.jsx";
 import { COLORS } from "./DesignSystem.js";
 import { computeSeverity, computeCoherence } from "../engine/signals.js";
-import { createHistoryBuffer, pushSnapshot, computeActivityState, computeTransitionIntensity } from "../engine/dynamics.js";
+import { createHistoryBuffer, pushSnapshot, computeActivityState, computeTransitionIntensity, computeGiniTrajectory } from "../engine/dynamics.js";
 import { fetchCommodityPrices } from "../engine/prices.js";
 import domainConfig from "../domains/hormuz-iran/config.js";
 import * as domainContent from "../domains/hormuz-iran/content.jsx";
@@ -88,19 +88,23 @@ export default function App() {
     () => computeTransitionIntensity(signals, baselineSignals),
     [signals, baselineSignals]
   );
+  const giniTrajectory = useMemo(
+    () => computeGiniTrajectory(historyBuffer, signals),
+    [historyBuffer, signals]
+  );
 
   const tabContent = {
     thesis: <ThesisView config={domainConfig} content={domainContent} terms={allTerms} />,
     nodes: <NodesView config={domainConfig} content={domainContent} terms={allTerms} />,
     patterns: <PatternsView config={domainConfig} content={domainContent} terms={allTerms} signals={signals} transitionIntensity={transitionIntensity} />,
     playbook: <EffectChainView config={domainConfig} content={domainContent} terms={allTerms} signals={signals} />,
-    monitor: <SignalMonitor config={domainConfig} terms={allTerms} signals={signals} coherence={coherence} priceStatus={priceStatus} activityState={activityState} transitionIntensity={transitionIntensity} />,
+    monitor: <SignalMonitor config={domainConfig} terms={allTerms} signals={signals} coherence={coherence} priceStatus={priceStatus} activityState={activityState} transitionIntensity={transitionIntensity} giniTrajectory={giniTrajectory} />,
     feed: <LiveFeed config={domainConfig} terms={allTerms} />,
   };
 
   return (
     <div style={{ minHeight: "100vh", background: COLORS.bg, color: COLORS.text, fontFamily: "'DM Sans', sans-serif" }}>
-      <Header config={domainConfig} activeTab={activeTab} setActiveTab={setActiveTab} terms={allTerms} coherence={coherence} />
+      <Header config={domainConfig} activeTab={activeTab} setActiveTab={setActiveTab} terms={allTerms} coherence={coherence} giniTrajectory={giniTrajectory} />
       <div style={{ maxWidth: 1400, margin: "0 auto" }}>
         {tabContent[activeTab] || <div style={{ padding: 32, color: COLORS.textDim }}>Tab not configured.</div>}
       </div>

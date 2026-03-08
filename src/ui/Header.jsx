@@ -1,7 +1,7 @@
 import { COLORS } from "./DesignSystem.js";
 import Term from "./Term.jsx";
 
-export default function Header({ config, activeTab, setActiveTab, terms = {}, coherence }) {
+export default function Header({ config, activeTab, setActiveTab, terms = {}, coherence, giniTrajectory }) {
   const REGIME_COLORS = { "STABLE": COLORS.green, "TRANSIENT SPIKE": COLORS.orange, "BOUNDARY LAYER": COLORS.orange, "CRISIS CONSOLIDATION": COLORS.red };
   const regimeColor = coherence?.regime ? (REGIME_COLORS[coherence.regime.label] || COLORS.textMuted) : COLORS.textMuted;
   const tabs = config.tabs || [];

@@ -6,7 +6,7 @@ import Term from "./Term.jsx";
 import SourceVerifyLink from "./SourceVerifyLink.jsx";
 import SignalConstellation from "./SignalConstellation.jsx";
 
-export default function SignalMonitor({ config, terms, signals, coherence, priceStatus, activityState, transitionIntensity }) {
+export default function SignalMonitor({ config, terms, signals, coherence, priceStatus, activityState, transitionIntensity, giniTrajectory }) {
   const [filter, setFilter] = useState({ severity: "all", category: "all" });
   const [analyzerText, setAnalyzerText] = useState("");
   const [analysisResult, setAnalysisResult] = useState(null);
@@ -90,7 +90,7 @@ export default function SignalMonitor({ config, terms, signals, coherence, price
             </div>
           </div>
           {/* Regime badge */}
-          <RegimeBadge coherence={coherence} />
+          <RegimeBadge coherence={coherence} giniTrajectory={giniTrajectory} />
         </div>
       </div>
 
@@ -104,7 +104,7 @@ export default function SignalMonitor({ config, terms, signals, coherence, price
           borderRadius: 12, padding: "20px 24px",
         }}>
           <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, color: COLORS.gold, marginBottom: 12 }}>
-            SIGNAL <Term t="coherence" terms={terms}>COHERENCE</Term> — <Term t="gini trajectory" terms={terms}>GINI TRAJECTORY</Term>
+            CROSS-CATEGORY <Term t="coherence" terms={terms}>COHERENCE</Term>
           </div>
           <div style={{
             height: 24, borderRadius: 12, background: COLORS.bg, position: "relative", overflow: "hidden", marginBottom: 10,
@@ -123,8 +123,15 @@ export default function SignalMonitor({ config, terms, signals, coherence, price
             </div>
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: COLORS.textMuted }}>
-            <span><Term t="dispersion" terms={terms}>DISPERSING</Term> (transient)</span>
-            <span><Term t="consolidation" terms={terms}>CONSOLIDATING</Term> (structural)</span>
+            <span style={{ color: giniTrajectory?.direction === "dispersing" ? COLORS.green : undefined, fontWeight: giniTrajectory?.direction === "dispersing" ? 700 : 400 }}>
+              <Term t="dispersion" terms={terms}>DISPERSING</Term> (transient)
+            </span>
+            <span style={{ fontSize: 9, color: COLORS.textDim }}>
+              {giniTrajectory?.direction === "insufficient data" ? "accumulating data..." : `trajectory: ${giniTrajectory?.direction || "—"}`}
+            </span>
+            <span style={{ color: giniTrajectory?.direction === "concentrating" ? COLORS.red : undefined, fontWeight: giniTrajectory?.direction === "concentrating" ? 700 : 400 }}>
+              <Term t="consolidation" terms={terms}>CONSOLIDATING</Term> (structural)
+            </span>
           </div>
           <div style={{
             marginTop: 12, padding: "10px 14px", borderRadius: 6,
