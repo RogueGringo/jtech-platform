@@ -4,6 +4,7 @@ import { classifyText } from "../engine/classify.js";
 import RegimeBadge from "./RegimeBadge.jsx";
 import Term from "./Term.jsx";
 import SourceVerifyLink from "./SourceVerifyLink.jsx";
+import SignalConstellation from "./SignalConstellation.jsx";
 
 export default function SignalMonitor({ config, terms, signals, coherence, priceStatus }) {
   const [filter, setFilter] = useState({ severity: "all", category: "all" });
@@ -191,6 +192,9 @@ export default function SignalMonitor({ config, terms, signals, coherence, price
           </div>
         </div>
       </div>
+
+      {/* SIGNAL CONSTELLATION */}
+      <SignalConstellation signals={signals} coherence={coherence} categories={config.categories || {}} />
 
       {/* LIVE SIGNAL GRID */}
       <div style={{
