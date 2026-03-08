@@ -4,7 +4,7 @@ export default function ThesisView({ config, content, terms }) {
   const ThesisContent = content.ThesisContent;
   return (
     <div>
-      <ThesisContent />
+      <ThesisContent terms={terms} />
       <div style={{ padding: "0 32px 32px" }}>
         <SourceVerifyLink sources={config.verifySources?.thesis} />
       </div>

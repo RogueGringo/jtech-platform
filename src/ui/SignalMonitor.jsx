@@ -10,6 +10,7 @@ export default function SignalMonitor({ config, terms, signals, coherence, price
   const [filter, setFilter] = useState({ severity: "all", category: "all" });
   const [analyzerText, setAnalyzerText] = useState("");
   const [analysisResult, setAnalysisResult] = useState(null);
+  const [highlightedSignal, setHighlightedSignal] = useState(null);
 
   // Resolve category meta from config
   const categoryMeta = {};
@@ -194,7 +195,7 @@ export default function SignalMonitor({ config, terms, signals, coherence, price
       </div>
 
       {/* SIGNAL CONSTELLATION */}
-      <SignalConstellation signals={signals} coherence={coherence} categories={config.categories || {}} />
+      <SignalConstellation signals={signals} coherence={coherence} categories={config.categories || {}} onSignalClick={setHighlightedSignal} />
 
       {/* LIVE SIGNAL GRID */}
       <div style={{
@@ -207,12 +208,15 @@ export default function SignalMonitor({ config, terms, signals, coherence, price
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
           {filteredSignals.map(s => {
             return (
-              <div key={s.id} style={{
+              <div key={s.id} onClick={() => setHighlightedSignal(highlightedSignal === s.id ? null : s.id)} style={{
                 padding: "14px 16px", borderRadius: 8,
-                background: `${severityColor(s.severity)}08`,
-                borderTop: `1px solid ${severityColor(s.severity)}20`,
-                borderRight: `1px solid ${severityColor(s.severity)}20`,
-                borderBottom: `1px solid ${severityColor(s.severity)}20`,
+                background: highlightedSignal === s.id ? `${severityColor(s.severity)}18` : `${severityColor(s.severity)}08`,
+                borderTop: `1px solid ${severityColor(s.severity)}${highlightedSignal === s.id ? "60" : "20"}`,
+                borderRight: `1px solid ${severityColor(s.severity)}${highlightedSignal === s.id ? "60" : "20"}`,
+                borderBottom: `1px solid ${severityColor(s.severity)}${highlightedSignal === s.id ? "60" : "20"}`,
+                borderLeft: highlightedSignal === s.id ? `3px solid ${severityColor(s.severity)}` : "none",
+                boxShadow: highlightedSignal === s.id ? `0 0 12px ${severityColor(s.severity)}20` : "none",
+                cursor: "pointer", transition: "all 0.2s",
               }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
                   <span style={{ fontSize: 10, color: COLORS.textMuted, letterSpacing: 0.5 }}>{s.name}</span>

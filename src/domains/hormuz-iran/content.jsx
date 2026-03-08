@@ -3,11 +3,12 @@
 // while keeping UI chrome and layout in shared template components.
 
 import { COLORS, FONTS } from "../../ui/DesignSystem.js";
+import Term from "../../ui/Term.jsx";
 
 // ─── THESIS CONTENT ──────────────────────────────────────────
 // The core thesis prose from ThesisTab (App.jsx ~lines 203-465).
 
-export function ThesisContent() {
+export function ThesisContent({ terms = {} }) {
   return (
     <div style={{ padding: "32px", maxWidth: 1100 }}>
       {/* Central concept */}
@@ -22,13 +23,13 @@ export function ThesisContent() {
           The Core Insight: Events Are the Weather. Effects Are the Climate.
         </h2>
         <p style={{ fontSize: 15, color: COLORS.text, lineHeight: 1.7, margin: "0 0 16px" }}>
-          Most operators, investors, and analysts track <strong style={{ color: COLORS.orange }}>events</strong> — "Iran closed the Strait,"
+          Most operators, investors, and analysts track <strong style={{ color: COLORS.orange }}><Term t="event" terms={terms}>events</Term></strong> — "Iran closed the Strait,"
           "Brent hit $85," "OPEC announced 206K bpd increase." Events are loud, sudden, and they dominate
           every headline. They trigger emotional responses. They're the thunderclap.
         </p>
         <p style={{ fontSize: 15, color: COLORS.text, lineHeight: 1.7, margin: "0 0 16px" }}>
           The rare operator who consistently outperforms — across bull markets, bear markets, and especially
-          during the violent transitions between them — tracks <strong style={{ color: COLORS.green }}>effects</strong>. Effects are what
+          during the violent transitions between them — tracks <strong style={{ color: COLORS.green }}><Term t="effect" terms={terms}>effects</Term></strong>. Effects are what
           actually changed in the physical world as a consequence of events. Not "Iran threatened closure" but
           <em> "tanker transits collapsed from 138/day to 1/day."</em> Not "oil prices surged" but <em>"seven of twelve
           P&I clubs canceled war risk coverage, removing insurance from 90% of the global fleet."</em>
@@ -36,7 +37,7 @@ export function ThesisContent() {
         <p style={{ fontSize: 15, color: COLORS.text, lineHeight: 1.7, margin: 0 }}>
           The difference sounds subtle. It is not. <strong style={{ color: COLORS.goldBright }}>It is the difference between reacting to noise and
           reading the actual state of the system.</strong> And that distinction becomes the difference between life and death
-          during phase transitions — the moments when the rules themselves are changing.
+          during <Term t="phase transition" terms={terms}>phase transitions</Term> — the moments when the rules themselves are changing.
         </p>
       </div>
 
@@ -124,7 +125,7 @@ export function ThesisContent() {
           <div style={{ marginTop: 16, padding: "12px", background: `${COLORS.green}15`, borderRadius: 8, fontSize: 12, color: COLORS.textDim, lineHeight: 1.6 }}>
             Effects are <strong style={{ color: COLORS.green }}>measurement</strong>. They tell you what physically moved.
             Insurance withdrawal is binary — either ships can sail insured or they can't.
-            Tanker counts are countable. These are the <strong style={{ color: COLORS.green }}>condition:states</strong> of the system.
+            Tanker counts are countable. These are the <strong style={{ color: COLORS.green }}><Term t="condition:state" terms={terms}>condition:states</Term></strong> of the system.
           </div>
         </div>
       </div>
@@ -141,7 +142,7 @@ export function ThesisContent() {
           Why This Matters Most During Phase Transitions
         </h3>
         <p style={{ fontSize: 14, color: COLORS.text, lineHeight: 1.7, margin: "0 0 14px" }}>
-          A <strong style={{ color: COLORS.goldBright }}>phase transition</strong> is the technical term for when the rules of the game
+          A <strong style={{ color: COLORS.goldBright }}><Term t="phase transition" terms={terms}>phase transition</Term></strong> is the technical term for when the rules of the game
           change — not a bad day, not volatility, but a genuine shift in what "normal" means. Water doesn't
           get progressively colder until it freezes. It's liquid, liquid, liquid… then <em>solid</em>. The transition is
           sudden, nonlinear, and it changes every property of the substance. You can't navigate ice with a boat.
@@ -225,7 +226,7 @@ export function ThesisContent() {
         <p style={{ fontSize: 14, color: COLORS.text, lineHeight: 1.7, margin: "0 0 16px" }}>
           When a crisis hits, every indicator spikes. Oil, gold, VIX, freight rates — everything moves at once.
           The critical question isn't <em>"how much did things move?"</em> It's: <strong style={{ color: COLORS.goldBright }}>are the signals
-          consolidating or dispersing?</strong>
+          <Term t="consolidation" terms={terms}>consolidating</Term> or <Term t="dispersion" terms={terms}>dispersing</Term>?</strong>
         </p>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
@@ -260,7 +261,7 @@ export function ThesisContent() {
         </div>
 
         <p style={{ fontSize: 13, color: COLORS.textDim, lineHeight: 1.6, margin: 0, fontStyle: "italic" }}>
-          In the formal framework, this is called tracking the "Gini trajectory over Betti count" —
+          In the formal framework, this is called tracking the "<Term t="Gini trajectory" terms={terms}>Gini trajectory</Term> over Betti count" —
           measuring whether the dominant signals are absorbing the lesser ones (consolidation) or
           fragmenting into noise (dispersion). You don't need the math. You need the habit of asking:
           <strong style={{ color: COLORS.gold }}> "Are independent systems all telling me the same thing?"</strong>
@@ -500,7 +501,7 @@ export function EffectChainClosing() {
 // multi-scale regime detection. Extracted from PatternsTab.jsx.
 // Standalone VERIFY_SOURCES removed — verify sources come from config.
 
-export function PatternsContent() {
+export function PatternsContent({ terms = {} }) {
   return (
     <div style={{ padding: "32px", maxWidth: 1200 }}>
       {/* Header */}
@@ -509,7 +510,7 @@ export function PatternsContent() {
           Patterns of Life — Analytical Framework
         </h2>
         <p style={{ fontSize: 13, color: COLORS.textDim, margin: 0, lineHeight: 1.5, maxWidth: 700 }}>
-          Historical conflict-to-price correlation, multi-scale regime detection methodology, and phase transition
+          Historical conflict-to-price correlation, multi-scale <Term t="regime" terms={terms}>regime</Term> detection methodology, and <Term t="phase transition" terms={terms}>phase transition</Term>{" "}
           framework. All data sourced from published records and verified analyst reports.
         </p>
       </div>

@@ -8,7 +8,7 @@ const CX = W / 2;
 const CY = H / 2;
 const MAX_R = 170;
 
-export default function SignalConstellation({ signals, coherence, categories }) {
+export default function SignalConstellation({ signals, coherence, categories, onSignalClick }) {
   const [hovered, setHovered] = useState(null);
 
   const categoryKeys = useMemo(() => Object.keys(categories), [categories]);
@@ -75,7 +75,7 @@ export default function SignalConstellation({ signals, coherence, categories }) 
           ));
         })}
         {nodes.map(n => (
-          <g key={n.id} onMouseEnter={() => setHovered(n.id)} onMouseLeave={() => setHovered(null)} style={{ cursor: "pointer" }}>
+          <g key={n.id} onMouseEnter={() => setHovered(n.id)} onMouseLeave={() => setHovered(null)} onClick={() => onSignalClick?.(n.id)} style={{ cursor: "pointer" }}>
             {(n.severity === "critical" || n.severity === "high") && (
               <circle cx={n.x} cy={n.y} r={n.r + 6} fill={n.color} opacity={0.12} />
             )}
