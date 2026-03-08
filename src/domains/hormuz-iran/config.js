@@ -6,6 +6,14 @@ export default {
   name: "Strait of Hormuz Crisis",
   subtitle: "Effects-Based Analysis",
 
+  primeMapping: {
+    kernel: "condition",
+    physical: "flow",
+    price: "price",
+    domestic: "capacity",
+    geopolitical: "context",
+  },
+
   tabs: [
     { id: "thesis", label: "THE THESIS" },
     { id: "nodes", label: "TRACKING NODES" },

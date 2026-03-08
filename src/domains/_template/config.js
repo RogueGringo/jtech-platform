@@ -7,6 +7,20 @@ export default {
   name: "Domain Name",
   subtitle: "Brief description",
 
+  // Map domain categories to universal semantic primes:
+  //   condition — state of core system (ACTORS + STATE)
+  //   flow      — movement of primary resource (ACTION + INSTRUMENTS)
+  //   price     — market valuation signals (MAGNITUDE + INSTRUMENTS)
+  //   capacity  — available reserves/ability (MAGNITUDE + STATE)
+  //   context   — external environment (CAUSE + ACTORS)
+  primeMapping: {
+    // my_category_1: "condition",
+    // my_category_2: "flow",
+    // my_category_3: "price",
+    // my_category_4: "capacity",
+    // my_category_5: "context",
+  },
+
   tabs: [
     { id: "thesis", label: "THE THESIS" },
     { id: "nodes", label: "TRACKING NODES" },
