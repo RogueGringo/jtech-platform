@@ -179,6 +179,48 @@ export default {
     kcposted: (prices) => prices.wti ? +(prices.wti.price - 13.25).toFixed(2) : null,
   },
 
+  chainSignalMap: {
+    "Maritime Insurance Cascade": {
+      nodes: [
+        { chainIndex: 0, signalId: "pni", activeWhen: "critical" },
+        { chainIndex: 1, signalId: "warrisk", activeWhen: "critical" },
+        { chainIndex: 2, signalId: "reinsure", activeWhen: "critical" },
+      ],
+    },
+    "Physical Flow Cascade": {
+      nodes: [
+        { chainIndex: 0, signalId: "ais", activeWhen: "critical" },
+        { chainIndex: 1, signalId: "stranded", activeWhen: "high" },
+        { chainIndex: 2, signalId: "vlcc", activeWhen: "high" },
+        { chainIndex: 3, signalId: "bypass", activeWhen: "moderate" },
+      ],
+    },
+    "Price Architecture Cascade": {
+      nodes: [
+        { chainIndex: 0, signalId: "brent", activeWhen: "high" },
+        { chainIndex: 1, signalId: "wti", activeWhen: "high" },
+        { chainIndex: 2, signalId: "spread", activeWhen: "moderate" },
+        { chainIndex: 3, signalId: "ovx", activeWhen: "high" },
+      ],
+    },
+    "Supply Constraint Cascade": {
+      nodes: [
+        { chainIndex: 0, signalId: "spr", activeWhen: "high" },
+        { chainIndex: 1, signalId: "rigs", activeWhen: "moderate" },
+        { chainIndex: 2, signalId: "duc", activeWhen: "high" },
+        { chainIndex: 3, signalId: "production", activeWhen: "moderate" },
+      ],
+    },
+    "Geopolitical Escalation Cascade": {
+      nodes: [
+        { chainIndex: 0, signalId: "iranprod", activeWhen: "critical" },
+        { chainIndex: 1, signalId: "georisk", activeWhen: "high" },
+        { chainIndex: 2, signalId: "opecspare", activeWhen: "high" },
+        { chainIndex: 3, signalId: "proxyactive", activeWhen: "critical" },
+      ],
+    },
+  },
+
   verifySources: {
     thesis: [
       { label: "MarineTraffic — Strait of Hormuz", url: "https://www.marinetraffic.com/en/ais/home/centerx/56.3/centery/26.6/zoom/9" },

@@ -2,9 +2,26 @@ import { COLORS } from "./DesignSystem.js";
 import SourceVerifyLink from "./SourceVerifyLink.jsx";
 import Term from "./Term.jsx";
 
-export default function EffectChainView({ config, content, terms }) {
+const SEVERITY_RANK = { critical: 4, high: 3, moderate: 2, watch: 1 };
+
+export default function EffectChainView({ config, content, terms, signals }) {
   const chains = content.getEffectChains();
   const EffectChainClosing = content.EffectChainClosing;
+
+  const signalMap = {};
+  for (const s of (signals || [])) signalMap[s.id] = s;
+
+  function isNodeActive(sectionTitle, chainIndex) {
+    const mapping = config.chainSignalMap?.[sectionTitle];
+    if (!mapping) return null;
+    const nodeMapping = mapping.nodes.find(n => n.chainIndex === chainIndex);
+    if (!nodeMapping) return null;
+    const signal = signalMap[nodeMapping.signalId];
+    if (!signal) return null;
+    const required = SEVERITY_RANK[nodeMapping.activeWhen] || 1;
+    const current = SEVERITY_RANK[signal.severity] || 0;
+    return current >= required ? signal : null;
+  }
 
   return (
     <div style={{ padding: "32px", maxWidth: 1100 }}>
@@ -45,44 +62,74 @@ export default function EffectChainView({ config, content, terms }) {
             {section.title}
           </h3>
 
-          {section.chain.map((link, li) => (
-            <div key={li} style={{ display: "flex", gap: 0 }}>
-              {/* Vertical connector */}
-              <div style={{ width: 40, display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0 }}>
+          {section.chain.map((link, li) => {
+            const activeSignal = isNodeActive(section.title, li);
+            const isActive = !!activeSignal;
+            return (
+              <div key={li} style={{ display: "flex", gap: 0 }}>
+                <div style={{ width: 40, display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0 }}>
+                  <div style={{
+                    width: 12, height: 12, borderRadius: "50%",
+                    background: isActive ? link.color : `${link.color}40`,
+                    border: `2px solid ${link.color}`,
+                    boxShadow: isActive ? `0 0 10px ${link.color}60` : "none",
+                    flexShrink: 0, zIndex: 1,
+                    transition: "all 0.3s",
+                  }} />
+                  {li < section.chain.length - 1 && (
+                    <div style={{
+                      width: 2, flex: 1, minHeight: 20,
+                      background: isActive && isNodeActive(section.title, li + 1) ? link.color : COLORS.border,
+                      transition: "background 0.3s",
+                    }} />
+                  )}
+                </div>
                 <div style={{
-                  width: 12, height: 12, borderRadius: "50%",
-                  background: `${link.color}40`, border: `2px solid ${link.color}`,
-                  flexShrink: 0, zIndex: 1,
-                }} />
-                {li < section.chain.length - 1 && (
-                  <div style={{ width: 2, flex: 1, background: `${COLORS.border}`, minHeight: 20 }} />
-                )}
+                  flex: 1, padding: "8px 16px 16px",
+                  marginBottom: li < section.chain.length - 1 ? 4 : 0,
+                  borderRadius: isActive ? 8 : 0,
+                  background: isActive ? `${link.color}08` : "transparent",
+                  boxShadow: isActive ? `inset 0 0 0 1px ${link.color}25` : "none",
+                  transition: "all 0.3s",
+                }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
+                    <span style={{
+                      fontSize: 9, fontWeight: 700, letterSpacing: 1,
+                      padding: "2px 6px", borderRadius: 3,
+                      background: `${link.color}15`, color: link.color,
+                    }}>
+                      {link.classification}
+                    </span>
+                    {isActive && (
+                      <span style={{
+                        fontSize: 8, fontWeight: 700, letterSpacing: 1,
+                        padding: "2px 8px", borderRadius: 3,
+                        background: `${link.color}25`, color: link.color,
+                        animation: "pulse 2s infinite",
+                      }}>
+                        ACTIVE — {activeSignal.value} {activeSignal.unit}
+                      </span>
+                    )}
+                    {!isActive && config.chainSignalMap?.[section.title]?.nodes.find(n => n.chainIndex === li) && (
+                      <span style={{
+                        fontSize: 8, letterSpacing: 0.5,
+                        padding: "2px 6px", borderRadius: 3,
+                        background: `${COLORS.textMuted}10`, color: COLORS.textMuted,
+                      }}>
+                        MONITORING
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ fontSize: 13, color: COLORS.text, fontWeight: 600, marginBottom: 4, lineHeight: 1.4 }}>
+                    {link.state}
+                  </div>
+                  <div style={{ fontSize: 12, color: COLORS.textDim, lineHeight: 1.6 }}>
+                    ↳ {link.downstream}
+                  </div>
+                </div>
               </div>
-
-              {/* Content */}
-              <div style={{
-                flex: 1,
-                padding: "8px 16px 16px",
-                marginBottom: li < section.chain.length - 1 ? 4 : 0,
-              }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
-                  <span style={{
-                    fontSize: 9, fontWeight: 700, letterSpacing: 1,
-                    padding: "2px 6px", borderRadius: 3,
-                    background: `${link.color}15`, color: link.color,
-                  }}>
-                    {link.classification}
-                  </span>
-                </div>
-                <div style={{ fontSize: 13, color: COLORS.text, fontWeight: 600, marginBottom: 4, lineHeight: 1.4 }}>
-                  {link.state}
-                </div>
-                <div style={{ fontSize: 12, color: COLORS.textDim, lineHeight: 1.6 }}>
-                  ↳ {link.downstream}
-                </div>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       ))}
 
