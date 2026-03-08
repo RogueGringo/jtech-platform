@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { COLORS } from "./DesignSystem.js";
 import SourceVerifyLink from "./SourceVerifyLink.jsx";
+import Term from "./Term.jsx";
 
 export default function NodesView({ config, content, terms }) {
   const [expanded, setExpanded] = useState(null);
@@ -13,7 +14,7 @@ export default function NodesView({ config, content, terms }) {
           Primary Tracking Nodes
         </h2>
         <p style={{ fontSize: 14, color: COLORS.textDim, lineHeight: 1.6, margin: "0 0 8px" }}>
-          These are the effect-indicators that describe the real state of the system. They're organized by
+          These are the <Term t="effect" terms={terms}>effect-indicators</Term> that describe the <Term t="condition:state" terms={terms}>condition:state</Term> of the system. They're organized by
           causal hierarchy — insurance gates physical flows, which drive prices, which determine domestic economics.
         </p>
         <div style={{
@@ -114,7 +115,7 @@ export default function NodesView({ config, content, terms }) {
                 borderLeft: `3px solid ${COLORS.gold}`,
               }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: COLORS.gold, letterSpacing: 1, marginBottom: 4 }}>
-                  ◉ BOUNDARY LAYER INDICATOR
+                  ◉ <Term t="boundary layer" terms={terms}>BOUNDARY LAYER</Term> INDICATOR
                 </div>
                 <div style={{ fontSize: 13, color: COLORS.text, lineHeight: 1.6 }}>
                   {cat.watchFor}

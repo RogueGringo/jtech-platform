@@ -3,6 +3,7 @@ import { COLORS } from "./DesignSystem.js";
 import { fetchAllFeeds } from "../engine/feeds.js";
 import { classifyText } from "../engine/classify.js";
 import SourceVerifyLink from "./SourceVerifyLink.jsx";
+import Term from "./Term.jsx";
 
 const REFRESH_INTERVAL = 3 * 60 * 1000; // 3 minutes
 
@@ -113,8 +114,8 @@ export default function LiveFeed({ config, terms }) {
           </h2>
           <p style={{ fontSize: 13, color: COLORS.textDim, margin: 0, lineHeight: 1.5, maxWidth: 700 }}>
             Real-time open-source intelligence classified as{" "}
-            <strong style={{ color: COLORS.green }}>effects</strong> (measurable physical changes) or{" "}
-            <strong style={{ color: COLORS.red }}>events</strong> (narrative, prediction, sentiment).
+            <strong style={{ color: COLORS.green }}><Term t="effect" terms={terms}>effects</Term></strong> (measurable physical changes) or{" "}
+            <strong style={{ color: COLORS.red }}><Term t="event" terms={terms}>events</Term></strong> (narrative, prediction, sentiment).
             Auto-refreshes every 3 minutes from {feedSources.length} sources.
           </p>
         </div>

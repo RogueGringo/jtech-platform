@@ -1,6 +1,7 @@
 import { COLORS } from "./DesignSystem.js";
+import Term from "./Term.jsx";
 
-export default function Header({ config, activeTab, setActiveTab }) {
+export default function Header({ config, activeTab, setActiveTab, terms = {} }) {
   const tabs = config.tabs || [];
   return (
     <div style={{ borderBottom: `1px solid ${COLORS.border}`, padding: "24px 32px 0" }}>
@@ -22,8 +23,8 @@ export default function Header({ config, activeTab, setActiveTab }) {
         </span>
       </div>
       <p style={{ fontSize: 13, color: COLORS.textDim, margin: "4px 0 16px", maxWidth: 720, lineHeight: 1.5 }}>
-        Effects-based intelligence platform. Track measurable physical changes instead of narrative events
-        for a structural edge in every market regime.
+        <Term t="effect" terms={terms}>Effects-based</Term> intelligence platform. Track measurable physical changes instead of narrative <Term t="event" terms={terms}>events</Term>{" "}
+        for a structural edge in every market <Term t="regime" terms={terms}>regime</Term>.
       </p>
       <div style={{ display: "flex", gap: 0 }}>
         {tabs.map((t) => (

@@ -4,6 +4,7 @@ import { computeSeverity, computeCoherence } from "../engine/signals.js";
 import { fetchCommodityPrices } from "../engine/prices.js";
 import { classifyText } from "../engine/classify.js";
 import RegimeBadge from "./RegimeBadge.jsx";
+import Term from "./Term.jsx";
 import SourceVerifyLink from "./SourceVerifyLink.jsx";
 
 export default function SignalMonitor({ config, terms }) {
@@ -103,8 +104,8 @@ export default function SignalMonitor({ config, terms }) {
             Signal Monitor
           </h2>
           <p style={{ fontSize: 13, color: COLORS.textDim, margin: 0, lineHeight: 1.5 }}>
-            Condition:state tracking across all effect-indicators. Price signals update from live market data.
-            Coherence measures whether independent indicators agree — consolidation indicates structural shift.
+            <Term t="condition:state" terms={terms}>Condition:state</Term> tracking across all effect-indicators. Price signals update from live market data.{" "}
+            <Term t="coherence" terms={terms}>Coherence</Term> measures whether independent indicators agree — <Term t="consolidation" terms={terms}>consolidation</Term> indicates structural shift.
           </p>
         </div>
         <div style={{ display: "flex", gap: 10 }}>
@@ -146,7 +147,7 @@ export default function SignalMonitor({ config, terms }) {
           borderRadius: 12, padding: "20px 24px",
         }}>
           <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, color: COLORS.gold, marginBottom: 12 }}>
-            SIGNAL COHERENCE — GINI TRAJECTORY
+            SIGNAL <Term t="coherence" terms={terms}>COHERENCE</Term> — <Term t="gini trajectory" terms={terms}>GINI TRAJECTORY</Term>
           </div>
           <div style={{
             height: 24, borderRadius: 12, background: COLORS.bg, position: "relative", overflow: "hidden", marginBottom: 10,
@@ -165,8 +166,8 @@ export default function SignalMonitor({ config, terms }) {
             </div>
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: COLORS.textMuted }}>
-            <span>DISPERSING (transient)</span>
-            <span>CONSOLIDATING (structural)</span>
+            <span><Term t="dispersion" terms={terms}>DISPERSING</Term> (transient)</span>
+            <span><Term t="consolidation" terms={terms}>CONSOLIDATING</Term> (structural)</span>
           </div>
           <div style={{
             marginTop: 12, padding: "10px 14px", borderRadius: 6,
@@ -318,8 +319,8 @@ export default function SignalMonitor({ config, terms }) {
         </div>
         <p style={{ fontSize: 12, color: COLORS.textDim, margin: "0 0 12px", lineHeight: 1.5 }}>
           Paste a headline, report excerpt, or data point below. The analyzer classifies the input as
-          an <strong style={{ color: COLORS.green }}>effect</strong> (measurable change in the physical world) or
-          an <strong style={{ color: COLORS.red }}>event</strong> (narrative, prediction, or sentiment) and maps it to the relevant effect chain.
+          an <strong style={{ color: COLORS.green }}><Term t="effect" terms={terms}>effect</Term></strong> (measurable change in the physical world) or
+          an <strong style={{ color: COLORS.red }}><Term t="event" terms={terms}>event</Term></strong> (narrative, prediction, or sentiment) and maps it to the relevant effect chain.
         </p>
         <div style={{ display: "flex", gap: 12 }}>
           <textarea

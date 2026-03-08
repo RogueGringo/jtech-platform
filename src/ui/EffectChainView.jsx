@@ -1,5 +1,6 @@
 import { COLORS } from "./DesignSystem.js";
 import SourceVerifyLink from "./SourceVerifyLink.jsx";
+import Term from "./Term.jsx";
 
 export default function EffectChainView({ config, content, terms }) {
   const chains = content.getEffectChains();
@@ -9,11 +10,11 @@ export default function EffectChainView({ config, content, terms }) {
     <div style={{ padding: "32px", maxWidth: 1100 }}>
       <div style={{ marginBottom: 28 }}>
         <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 22, color: COLORS.gold, margin: "0 0 8px" }}>
-          Effect Chains: How Condition:States Cascade
+          <Term t="effect chain" terms={terms}>Effect Chains</Term>: How <Term t="condition:state" terms={terms}>Condition:States</Term> Cascade
         </h2>
         <p style={{ fontSize: 14, color: COLORS.textDim, lineHeight: 1.6, margin: 0 }}>
-          Effects don't exist in isolation. They propagate through causal chains — each changed condition:state
-          alters the boundary conditions for the next. The maps below show the objective structure of how
+          <Term t="effect" terms={terms}>Effects</Term> don't exist in isolation. They propagate through causal chains — each changed <Term t="condition:state" terms={terms}>condition:state</Term>{" "}
+          alters the <Term t="boundary layer" terms={terms}>boundary conditions</Term> for the next. The maps below show the objective structure of how
           effects move through the system. The geometry is the same whether oil is $40 or $140.
         </p>
         <div style={{
