@@ -79,7 +79,7 @@ async function llmClassify(systemPrompt, userContent) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "liquid/lfm2.5-1.2b",
+        model: "mistralai/ministral-3-3b",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userContent },
