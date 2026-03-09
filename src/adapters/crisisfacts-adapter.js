@@ -61,7 +61,7 @@ const DISSOLUTION_CRITICAL = {
   // Note: "nothing" and "lost" excluded — too ambiguous in normal speech.
   // They only signal dissolution in co-occurrence with other dissolution primes,
   // which the bigram scanner handles ("no help", "no escape").
-  agency: new Set(["helpless", "abandoned", "gone", "nowhere", "hopeless", "powerless"]),
+  agency: new Set(["helpless", "abandoned", "gone", "nowhere", "hopeless", "powerless", "alone"]),
 };
 
 const DISSOLUTION_HIGH = {
@@ -75,6 +75,15 @@ const DISSOLUTION_HIGH = {
   flood: new Set(["flooding", "submerged", "underwater", "swept", "floodwater", "inundated"]),
   // URGENT — distress signal, requesting immediate intervention
   urgent: new Set(["emergency", "desperate", "sos", "mayday", "critical", "urgent", "dire"]),
+  // DEPRIVATION — unmet basic biological needs (the implicit crisis the old dictionary missed)
+  // "starving and thirsty" = dissolution. "food distribution" = propagation (handled by bigrams).
+  deprivation: new Set(["starving", "thirsty", "hungry", "dehydrated", "starvation", "malnourished", "famished", "starved"]),
+  // SUFFERING — active medical/physical distress without explicit injury
+  // Distinct from injury (which implies trauma event). Suffering = ongoing deterioration.
+  suffering: new Set(["suffering", "sick", "fever", "infection", "disease", "cholera", "epidemic", "malaria", "plague", "dying"]),
+  // DISPLACEMENT — loss of shelter/home, forced movement
+  // "homeless" is unambiguous. "shelter" alone is propagation (provided). "no shelter" is bigram dissolution.
+  displacement: new Set(["homeless", "displaced", "unsheltered", "stranded", "refugee", "refugees", "uprooted"]),
 };
 
 // PROPAGATION PRIMES — Stabilization / coordination indicators
@@ -107,12 +116,21 @@ const BIGRAM_DISSOLUTION_CRITICAL = new Set([
   "please help", "help us", "help me", "no help", "no response", "no rescue",
   "all dead", "many dead", "people dead", "people dying", "mass casualty",
   "cant breathe", "can breathe", "no way", "no escape", "no one",
+  // Expanded: mass deprivation / systemic collapse
+  "people starving", "people hungry", "people sick", "people suffering",
+  "nothing eat", "nowhere go", "nobody coming", "all alone",
 ]);
 
 const BIGRAM_DISSOLUTION_HIGH = new Set([
   "on fire", "under water", "rising water", "active shooter", "shots fired",
   "need help", "need rescue", "need water", "need food", "still trapped",
   "no power", "no water", "no food", "cut off",
+  // Expanded: unmet needs (word alone is ambiguous, pair is unambiguous)
+  "send food", "send water", "send medicine", "send help",
+  "need medicine", "need shelter", "need doctor", "need hospital",
+  "no medicine", "no shelter", "no doctor", "no hospital",
+  "without food", "without water", "without shelter", "without medicine",
+  "pregnant woman", "small child", "little kid",
 ]);
 
 const BIGRAM_PROPAGATION_MODERATE = new Set([

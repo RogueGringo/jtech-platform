@@ -4,13 +4,15 @@ JtechAi Intelligence — Full-stack HF Space.
 Serves the dashboard frontend at / and live data at /api/*.
 One URL. One deployment. No CORS. Everything works.
 
-  /           — The intelligence dashboard (React SPA)
-  /api/feeds  — Aggregated RSS feeds, classified as effect/event
-  /api/prices — Real-time commodity prices (Brent, WTI, OVX)
-  /api/health — Service status
+  /              — The intelligence dashboard (React SPA)
+  /api/feeds     — Aggregated RSS feeds, classified as effect/event
+  /api/prices    — Real-time commodity prices (Brent, WTI, OVX)
+  /api/health    — Service status
+  /api/lmstudio/* — LM Studio SANS (Sovereign Agent Node System) endpoints
 """
 
 import os
+import sys
 import time
 import re
 import math
@@ -23,6 +25,9 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
+
+# Add launcher to path for SANS import
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 app = FastAPI(title="JtechAi Intelligence", version="1.0.0")
 
