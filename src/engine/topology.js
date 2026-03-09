@@ -18,6 +18,7 @@
  */
 
 import { SEVERITY_RANK } from "../../tests/lib/backtest-engine.js";
+import { persistentHomology } from "./homology.js";
 
 // ================================================================
 // MULTI-SCALE GINI TRAJECTORY
@@ -384,5 +385,29 @@ export function fiberBundleSummary(results, signalHistory) {
     maxMean: Math.max(...results.map(r => r.mean)),
     minGini: Math.min(...results.map(r => r.gini)),
     maxGini: Math.max(...results.map(r => r.gini)),
+  };
+}
+
+// ================================================================
+// LAYER 1: TRUE TOPOLOGICAL ANALYSIS
+// ================================================================
+
+/**
+ * Compute persistent homology on R⁸ feature vectors from batch processing.
+ * This bridges the existing engine pipeline to Layer 1 (real topology).
+ *
+ * @param {number[][]} batchFeatureVectors - Array of R⁸ vectors, one per batch
+ * @param {number} maxDim - Maximum homology dimension (default: 1 for β₀ + β₁)
+ * @returns {{ b0: Array, b1: Array, onsetScale: number, maxPersistence: number, pointCount: number }}
+ */
+export function topologicalAnalysis(batchFeatureVectors, maxDim = 1) {
+  if (!batchFeatureVectors || batchFeatureVectors.length < 2) {
+    return { b0: [], b1: [], onsetScale: Infinity, maxPersistence: 0, pointCount: 0 };
+  }
+
+  const result = persistentHomology(batchFeatureVectors, maxDim);
+  return {
+    ...result,
+    pointCount: batchFeatureVectors.length,
   };
 }
