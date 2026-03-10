@@ -9,6 +9,7 @@ One URL. One deployment. No CORS. Everything works.
   /api/prices    — Real-time commodity prices (Brent, WTI, OVX)
   /api/historical/{ticker} — Historical OHLCV + 12 technicals (1d TTL)
   /api/metadata/{ticker}   — Ticker metadata (7d TTL)
+  /api/sentiment/{ticker}  — News sentiment records via Google News RSS (1h TTL)
   /api/health    — Service status
   /api/lmstudio/* — LM Studio SANS (Sovereign Agent Node System) endpoints
 """
@@ -496,6 +497,90 @@ async def get_metadata(ticker: str):
         "source": "live",
     }
     set_hist_cache(cache_key, payload)
+    return JSONResponse(payload)
+
+
+# ─── SENTIMENT (Google News RSS by ticker) ───────────────────
+SENTIMENT_TTL = 3600  # 1 hour — news changes more frequently
+
+@app.get("/api/sentiment/{ticker}")
+async def get_sentiment(ticker: str, days: int = 7):
+    cache_key = f"sentiment:{ticker}:{days}"
+    cached = get_hist_cached(cache_key, SENTIMENT_TTL)
+    if cached:
+        return JSONResponse({**cached, "source": "cached"})
+
+    records = []
+    source_status = {}
+
+    # Source 1: Google News RSS filtered by ticker
+    news_url = f"https://news.google.com/rss/search?q={ticker}+stock&hl=en-US&gl=US&ceid=US:en"
+    try:
+        feed = feedparser.parse(news_url)
+        entries = feed.entries[:20]
+        if entries:
+            source_status["google_news"] = {"ok": True, "count": len(entries)}
+            for entry in entries:
+                title = getattr(entry, "title", "") or ""
+                desc = getattr(entry, "summary", "") or ""
+                desc = re.sub(r"<[^>]*>", "", desc).strip()
+                pub = getattr(entry, "published", "") or ""
+                records.append({
+                    "text": f"{title}. {desc}",
+                    "source": "google_news",
+                    "timestamp": pub,
+                })
+        else:
+            source_status["google_news"] = {"ok": False, "error": "Empty feed"}
+    except Exception as e:
+        source_status["google_news"] = {"ok": False, "error": str(e)[:100]}
+
+    # Source 2: Google News RSS for company/sector context
+    try:
+        meta_key = f"meta:{ticker}"
+        meta = get_hist_cached(meta_key, ttl_seconds=604800)
+        company_name = None
+        if meta:
+            company_name = meta.get("name", "").split(" ")[0]  # First word of company name
+
+        if company_name and len(company_name) > 2:
+            context_url = f"https://news.google.com/rss/search?q={company_name}+financial&hl=en-US&gl=US&ceid=US:en"
+            feed2 = feedparser.parse(context_url)
+            entries2 = feed2.entries[:10]
+            if entries2:
+                source_status["google_context"] = {"ok": True, "count": len(entries2)}
+                for entry in entries2:
+                    title = getattr(entry, "title", "") or ""
+                    desc = getattr(entry, "summary", "") or ""
+                    desc = re.sub(r"<[^>]*>", "", desc).strip()
+                    pub = getattr(entry, "published", "") or ""
+                    records.append({
+                        "text": f"{title}. {desc}",
+                        "source": "google_context",
+                        "timestamp": pub,
+                    })
+    except Exception:
+        pass
+
+    # Deduplicate by title similarity
+    seen = set()
+    deduped = []
+    for rec in records:
+        key = re.sub(r"[^a-z0-9]", "", rec["text"].lower())[:80]
+        if key not in seen:
+            seen.add(key)
+            deduped.append(rec)
+
+    payload = {
+        "ticker": ticker.upper(),
+        "records": deduped,
+        "sourceStatus": source_status,
+        "recordCount": len(deduped),
+        "fetchedAt": datetime.now(timezone.utc).isoformat(),
+        "source": "live" if deduped else "unavailable",
+    }
+    if deduped:
+        set_hist_cache(cache_key, payload)
     return JSONResponse(payload)
 
 
