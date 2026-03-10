@@ -72,8 +72,10 @@ console.log("\n  Sending to LM Studio...");
 const start = performance.now();
 try {
   const result = await generateIntelBrief(prompt, {
+    model: "mistralai/ministral-3-3b",
     temperature: 0.1,
     maxTokens: 300,
+    timeoutMs: 120_000, // 2 min — cold start can be slow
   });
   const elapsed = performance.now() - start;
 
