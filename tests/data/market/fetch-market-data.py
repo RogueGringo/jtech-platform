@@ -2,7 +2,8 @@
 """
 Fetch real historical OHLCV data from Yahoo Finance and compute technicals.
 
-Downloads 5 backtest event datasets with full technical indicator suite.
+Downloads 19 datasets: 5 original events, 10 expansion crises, 3 negative
+controls (calm periods), and 1 VIX time series for volatility classification.
 All data is real — zero synthetic data.
 
 Source: Yahoo Finance via yfinance
@@ -23,6 +24,39 @@ EVENTS = [
     {"name": "svb-2023-kre",    "ticker": "KRE",  "start": "2022-12-01", "end": "2023-06-30"},
     {"name": "nvda-2023-nvda",  "ticker": "NVDA", "start": "2022-12-01", "end": "2024-03-30"},
     {"name": "gme-2021-gme",    "ticker": "GME",  "start": "2020-12-01", "end": "2021-06-30"},
+]
+
+# ---------------------------------------------------------------------------
+# Expansion crisis events (+10 crises for V&V statistical audit)
+# ---------------------------------------------------------------------------
+EXPANSION_EVENTS = [
+    {"name": "dotcom-2000-qqq",      "ticker": "QQQ",  "start": "2000-03-01", "end": "2002-10-31"},
+    {"name": "flash-2010-spy",       "ticker": "SPY",  "start": "2010-04-01", "end": "2010-07-15"},
+    {"name": "eudebt-2011-ewg",      "ticker": "EWG",  "start": "2011-06-01", "end": "2012-02-29"},
+    {"name": "taper-2013-tlt",       "ticker": "TLT",  "start": "2013-04-01", "end": "2013-10-31"},
+    {"name": "china-2015-fxi",       "ticker": "FXI",  "start": "2015-05-01", "end": "2016-03-31"},
+    {"name": "oilcrash-2014-xle",    "ticker": "XLE",  "start": "2014-05-01", "end": "2016-03-31"},
+    {"name": "volmageddon-2018-spy", "ticker": "SPY",  "start": "2017-12-01", "end": "2018-05-31"},
+    {"name": "yencarry-2024-ewj",    "ticker": "EWJ",  "start": "2024-06-01", "end": "2024-10-31"},
+    {"name": "tariff-2025-kweb",     "ticker": "KWEB", "start": "2025-02-01", "end": "2025-06-30"},
+    {"name": "crypto-2022-coin",     "ticker": "COIN", "start": "2022-03-01", "end": "2023-01-31"},
+]
+
+# ---------------------------------------------------------------------------
+# Negative controls (calm periods — low volatility, no crisis)
+# ---------------------------------------------------------------------------
+NEGATIVE_CONTROLS = [
+    {"name": "calm-2013-spy",  "ticker": "SPY", "start": "2013-06-01", "end": "2014-06-30"},
+    {"name": "calm-2017-spy",  "ticker": "SPY", "start": "2017-01-01", "end": "2017-12-31"},
+    {"name": "calm-2019-spy",  "ticker": "SPY", "start": "2019-04-01", "end": "2019-09-30"},
+]
+
+# ---------------------------------------------------------------------------
+# VIX data (volatility control — identifies calm vs crisis date ranges)
+# Note: VIX has no meaningful Volume; volume-dependent indicators will be 0.
+# ---------------------------------------------------------------------------
+VIX_DATA = [
+    {"name": "vix-2010-2025", "ticker": "^VIX", "start": "2010-01-01", "end": "2025-12-31"},
 ]
 
 OUT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -221,9 +255,10 @@ def fetch_and_save(event: dict) -> None:
 
 def main():
     os.makedirs(OUT_DIR, exist_ok=True)
-    for event in EVENTS:
+    all_events = EVENTS + EXPANSION_EVENTS + NEGATIVE_CONTROLS + VIX_DATA
+    for event in all_events:
         fetch_and_save(event)
-    print("\nDone. All data from Yahoo Finance — zero synthetic data.")
+    print(f"\nDone. {len(all_events)} datasets from Yahoo Finance — zero synthetic data.")
 
 
 if __name__ == "__main__":
