@@ -241,7 +241,7 @@ configA.signals.push({ id: "extra", category: "test", name: "test" });
 configA.tabs.push({ id: "extra", label: "EXTRA" });
 configA.categories.extra = { label: "EXTRA", color: "#000" };
 assert(configB.signals.length === 12, `Config B unaffected by Config A mutation (signals): ${configB.signals.length}`);
-assert(configB.tabs.length === 6, `Config B unaffected by Config A mutation (tabs): ${configB.tabs.length}`);
+assert(configB.tabs.length === 7, `Config B unaffected by Config A mutation (tabs): ${configB.tabs.length}`);
 assert(configB.categories.extra === undefined, "Config B unaffected by Config A mutation (categories)");
 
 // ================================================================
