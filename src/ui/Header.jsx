@@ -1,7 +1,7 @@
 import { COLORS } from "./DesignSystem.js";
 import Term from "./Term.jsx";
 
-export default function Header({ config, activeTab, setActiveTab, terms = {}, coherence, giniTrajectory }) {
+export default function Header({ config, activeTab, setActiveTab, terms = {}, coherence, giniTrajectory, mode, onModeToggle }) {
   const REGIME_COLORS = { "STABLE": COLORS.green, "TRANSIENT SPIKE": COLORS.orange, "BOUNDARY LAYER": COLORS.orange, "CRISIS CONSOLIDATION": COLORS.red };
   const regimeColor = coherence?.regime ? (REGIME_COLORS[coherence.regime.label] || COLORS.textMuted) : COLORS.textMuted;
   const tabs = config.tabs || [];
@@ -34,11 +34,30 @@ export default function Header({ config, activeTab, setActiveTab, terms = {}, co
             </span>
           </div>
         )}
+        {onModeToggle && (
+          <button
+            onClick={onModeToggle}
+            style={{
+              display: "inline-flex", alignItems: "center", gap: 6,
+              fontSize: 9, letterSpacing: 1.5, padding: "4px 12px", borderRadius: 4,
+              background: mode === "market" ? `${COLORS.gold}15` : `${COLORS.blue}15`,
+              border: `1px solid ${mode === "market" ? COLORS.gold : COLORS.blue}30`,
+              color: mode === "market" ? COLORS.gold : COLORS.blue,
+              fontWeight: 700,
+              cursor: "pointer",
+              marginLeft: "auto",
+              fontFamily: "'DM Sans', sans-serif",
+              transition: "all 0.2s",
+            }}
+          >
+            {mode === "market" ? "MARKET" : "DOMAIN"}
+          </button>
+        )}
         <span style={{
           display: "inline-flex", alignItems: "center", gap: 4,
           fontSize: 9, letterSpacing: 1, padding: "2px 8px", borderRadius: 3,
           background: `${COLORS.green}15`, color: COLORS.green, fontWeight: 700,
-          marginLeft: "auto",
+          marginLeft: onModeToggle ? 0 : "auto",
         }}>
           <span style={{ width: 5, height: 5, borderRadius: "50%", background: COLORS.green, animation: "pulse 2s infinite" }} />
           CONTINUOUS UPDATE
