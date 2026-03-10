@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { COLORS, FONTS } from "./DesignSystem.js";
 import { analyzeTickerFromBackend } from "../engine/market-data.js";
+import SectorView from "./SectorView.jsx";
 
 // ================================================================
 // REGIME BADGE COLORS — matches Header.jsx palette
@@ -116,6 +117,7 @@ export default function WatchlistView({ onSelectTicker, backendUrl = "" }) {
 
       const row = {
         ticker: t,
+        sector: data.metadata?.sector || data.config?.sector || "Unknown",
         price: lastPrice,
         regime: data.regime,
         gini: data.gini,
@@ -191,6 +193,21 @@ export default function WatchlistView({ onSelectTicker, backendUrl = "" }) {
     const vb = rb ? getSortValue(rb, sortCol) : null;
     return compareValues(va, vb, sortAsc);
   });
+
+  // ── Sector data for SectorView ──────────────────────────────
+  const sectorData = useMemo(() => {
+    return tickers
+      .map(t => results[t]?.data)
+      .filter(d => d && d.regime)
+      .map(d => ({
+        ticker: d.ticker,
+        sector: d.sector || "Unknown",
+        regime: d.regime?.label || d.regime || "",
+        gini: d.gini,
+        mean: d.mean,
+        coherence: d.coherence,
+      }));
+  }, [tickers, results]);
 
   // ── Column definitions ───────────────────────────────────────
   const COLUMNS = [
@@ -532,6 +549,14 @@ export default function WatchlistView({ onSelectTicker, backendUrl = "" }) {
         {tickers.length} ticker{tickers.length !== 1 ? "s" : ""} tracked.
         Click any row to drill into single-ticker regime analysis.
       </div>
+
+      {/* ── Sector Coherence Section ─────────────────────────────── */}
+      {sectorData.length >= 2 && (
+        <SectorView
+          watchlistData={sectorData}
+          onSelectTicker={onSelectTicker}
+        />
+      )}
     </div>
   );
 }
