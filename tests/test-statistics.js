@@ -7,6 +7,7 @@ import {
   pearsonCI,
   fisherZTest,
   powerAnalysis,
+  lag1Autocorrelation,
 } from "./lib/statistics.js";
 
 console.log("=".repeat(70));
@@ -173,6 +174,39 @@ check(tinyPower.sufficient === false,
   `n=5 insufficient for width=0.5: actual width=${tinyPower.width.toFixed(3)}`);
 check(tinyPower.recommendedN !== null && tinyPower.recommendedN > tinyData.length,
   `Recommends N=${tinyPower.recommendedN} > current n=${tinyData.length}`);
+
+// ================================================================
+// 7. lag1Autocorrelation
+// ================================================================
+console.log("\n--- lag1Autocorrelation ---");
+
+// Perfect autocorrelation: [1,2,3,4,5] — next value always increases
+const increasing = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+const acInc = lag1Autocorrelation(increasing);
+check(acInc > 0.95, `Monotonic increasing: ρ₁=${acInc.toFixed(4)} > 0.95`);
+
+// High autocorrelation: smooth sine wave (adjacent values are similar)
+const sine = Array.from({ length: 100 }, (_, i) => Math.sin(i * 0.1));
+const acSine = lag1Autocorrelation(sine);
+check(acSine > 0.9, `Sine wave: ρ₁=${acSine.toFixed(4)} > 0.9`);
+
+// Low autocorrelation: alternating series (each value negates previous)
+const alternating = Array.from({ length: 100 }, (_, i) => (i % 2 === 0 ? 1 : -1));
+const acAlt = lag1Autocorrelation(alternating);
+check(acAlt < -0.9, `Alternating ±1: ρ₁=${acAlt.toFixed(4)} < -0.9`);
+
+// Near-zero autocorrelation: pseudo-random (LCG)
+let seed = 42;
+const pseudoRandom = Array.from({ length: 200 }, () => {
+  seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+  return seed / 0x7fffffff;
+});
+const acRandom = lag1Autocorrelation(pseudoRandom);
+check(Math.abs(acRandom) < 0.15, `Pseudo-random: |ρ₁|=${Math.abs(acRandom).toFixed(4)} < 0.15`);
+
+// Edge case: too short
+const acShort = lag1Autocorrelation([1, 2]);
+check(acShort === 0, `Length 2: ρ₁=${acShort} === 0`);
 
 // ================================================================
 // SUMMARY

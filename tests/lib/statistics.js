@@ -244,6 +244,39 @@ export function fisherZTest(r1, n1, r2, n2) {
 }
 
 /**
+ * Lag-1 autocorrelation of a time series.
+ * Measures how much each value depends on its predecessor.
+ * High ρ₁ = sequential persistence (crisis today → crisis tomorrow).
+ * ρ₁ ≈ 0 = no temporal dependence (shuffled/random).
+ *
+ * Uses the standard Pearson r between x[0..n-2] and x[1..n-1].
+ *
+ * @param {number[]} series - time series values
+ * @returns {number} lag-1 autocorrelation in [-1, 1]
+ */
+export function lag1Autocorrelation(series) {
+  const n = series.length;
+  if (n < 3) return 0;
+
+  const xs = series.slice(0, n - 1);
+  const ys = series.slice(1);
+
+  const muX = xs.reduce((a, b) => a + b, 0) / xs.length;
+  const muY = ys.reduce((a, b) => a + b, 0) / ys.length;
+
+  let num = 0, denX = 0, denY = 0;
+  for (let i = 0; i < xs.length; i++) {
+    const dx = xs[i] - muX;
+    const dy = ys[i] - muY;
+    num += dx * dy;
+    denX += dx * dx;
+    denY += dy * dy;
+  }
+
+  return denX > 0 && denY > 0 ? num / (Math.sqrt(denX) * Math.sqrt(denY)) : 0;
+}
+
+/**
  * Power analysis via bootstrap.
  * Runs bootstrapCI, checks if CI width <= targetWidth.
  * If not, estimates recommended N using (width/target)^2 scaling.

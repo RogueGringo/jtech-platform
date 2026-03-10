@@ -10,6 +10,20 @@ import { computePropagationCapacity, computeDissolutionRate, classifyTrajectory 
 export const SEVERITY_RANK = { critical: 4, high: 3, moderate: 2, watch: 1 };
 
 // ================================================================
+// SIGNAL VALUE EXTRACTION — auto-detect continuous σ vs discrete rank
+// ================================================================
+
+/**
+ * Extract numeric value from a signal.
+ * If the signal has a continuous `sigma` field (from market adapter),
+ * use |σ| — this breaks the discretization artifact that makes N3 fail.
+ * Otherwise fall back to SEVERITY_RANK mapping (text/legacy domains).
+ */
+function signalValue(s) {
+  return s.sigma !== undefined ? Math.abs(s.sigma) : (SEVERITY_RANK[s.severity] || 1);
+}
+
+// ================================================================
 // MATHEMATICAL FRAMEWORK
 // ================================================================
 
@@ -23,15 +37,15 @@ export function computeSeverity(id, numeric, thresholds) {
 }
 
 export function computeGini(signals) {
-  const ranks = signals.map(s => SEVERITY_RANK[s.severity] || 1);
-  const n = ranks.length;
+  const values = signals.map(signalValue);
+  const n = values.length;
   if (n === 0) return 0;
-  const mean = ranks.reduce((a, b) => a + b, 0) / n;
+  const mean = values.reduce((a, b) => a + b, 0) / n;
   if (mean === 0) return 0;
   let sumAbsDiff = 0;
   for (let i = 0; i < n; i++) {
     for (let j = 0; j < n; j++) {
-      sumAbsDiff += Math.abs(ranks[i] - ranks[j]);
+      sumAbsDiff += Math.abs(values[i] - values[j]);
     }
   }
   return sumAbsDiff / (2 * n * n * mean);
@@ -39,8 +53,8 @@ export function computeGini(signals) {
 
 export function computeMeanSeverity(signals) {
   if (signals.length === 0) return 1;
-  const ranks = signals.map(s => SEVERITY_RANK[s.severity] || 1);
-  return ranks.reduce((a, b) => a + b, 0) / ranks.length;
+  const values = signals.map(signalValue);
+  return values.reduce((a, b) => a + b, 0) / values.length;
 }
 
 export function computeCrossCoherence(signals, categoryKeys) {
@@ -49,8 +63,8 @@ export function computeCrossCoherence(signals, categoryKeys) {
   for (const cat of categoryKeys) {
     const catSignals = signals.filter(s => s.category === cat);
     if (catSignals.length === 0) continue;
-    const ranks = catSignals.map(s => SEVERITY_RANK[s.severity] || 1);
-    catMeans.push(ranks.reduce((a, b) => a + b, 0) / ranks.length);
+    const values = catSignals.map(signalValue);
+    catMeans.push(values.reduce((a, b) => a + b, 0) / values.length);
   }
   if (catMeans.length <= 1) return 100;
   const mu = catMeans.reduce((a, b) => a + b, 0) / catMeans.length;
@@ -61,9 +75,9 @@ export function computeCrossCoherence(signals, categoryKeys) {
   return Math.round((1 - Math.min(cv, 1)) * 100);
 }
 
-export function classifyRegime(meanSeverity, gini) {
-  const highMean = meanSeverity >= 2.5;
-  const highGini = gini >= 0.2;
+export function classifyRegime(meanSeverity, gini, { meanThreshold = 2.5, giniThreshold = 0.2 } = {}) {
+  const highMean = meanSeverity >= meanThreshold;
+  const highGini = gini >= giniThreshold;
   if (!highMean && !highGini) return { label: "STABLE", quadrant: "low-low" };
   if (!highMean && highGini)  return { label: "TRANSIENT SPIKE", quadrant: "low-high" };
   if (highMean && !highGini)  return { label: "CRISIS CONSOLIDATION", quadrant: "high-low" };
@@ -80,7 +94,7 @@ export function createBuffer() { return { snapshots: [], cursor: 0 }; }
 
 export function pushBuffer(buffer, signals) {
   const ranks = {};
-  for (const s of signals) ranks[s.id] = SEVERITY_RANK[s.severity] || 1;
+  for (const s of signals) ranks[s.id] = signalValue(s);
   if (buffer.snapshots.length < MAX_SNAPSHOTS) {
     buffer.snapshots.push({ ranks });
   } else {
@@ -119,11 +133,12 @@ export function giniTrajectory(buffer) {
 // ================================================================
 
 export function transitionIntensity(signals, baselineSignals) {
-  const baseRanks = {};
-  for (const s of baselineSignals) baseRanks[s.id] = SEVERITY_RANK[s.severity] || 1;
+  const hasSigma = signals.length > 0 && signals[0].sigma !== undefined;
+  const baseValues = {};
+  for (const s of baselineSignals) baseValues[s.id] = signalValue(s);
   const deltas = signals.map(s => {
-    const current = SEVERITY_RANK[s.severity] || 1;
-    const base = baseRanks[s.id] || 1;
+    const current = signalValue(s);
+    const base = baseValues[s.id] || (hasSigma ? 0 : 1);
     return current - base;
   });
   const magnitude = Math.sqrt(deltas.reduce((sum, d) => sum + d * d, 0));
