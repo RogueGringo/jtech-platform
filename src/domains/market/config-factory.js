@@ -45,6 +45,7 @@ const SIGNAL_TEMPLATES = [
 // ================================================================
 
 const MARKET_TABS = [
+  { id: "watchlist", label: "WATCHLIST" },
   { id: "thesis",   label: "REGIME" },
   { id: "nodes",    label: "SIGNALS" },
   { id: "patterns", label: "TOPOLOGY" },

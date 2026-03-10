@@ -8,6 +8,7 @@ import { analyzeTickerFromBackend } from "../engine/market-data.js";
 import domainConfig from "../domains/hormuz-iran/config.js";
 import * as domainContent from "../domains/hormuz-iran/content.jsx";
 import * as marketContent from "../domains/market/content.jsx";
+import { createMarketConfig } from "../domains/market/config-factory.js";
 import domainTerms from "../domains/hormuz-iran/terms.js";
 import marketTerms from "../domains/market/terms.js";
 import universalTerms from "../terms/universal.js";
@@ -17,6 +18,10 @@ import PatternsView from "./PatternsView.jsx";
 import EffectChainView from "./EffectChainView.jsx";
 import SignalMonitor from "./SignalMonitor.jsx";
 import LiveFeed from "./LiveFeed.jsx";
+import WatchlistView from "./WatchlistView.jsx";
+
+// Default market config for watchlist view (no ticker selected)
+const defaultMarketConfig = createMarketConfig("MARKET", { name: "Market", sector: "Multi-Ticker" });
 
 // ================================================================
 // TICKER SEARCH BAR — premium dark input with gold focus accent
@@ -133,13 +138,13 @@ export default function App() {
   const [marketData, setMarketData] = useState(null);
 
   // ── Domain mode state (legacy hormuz-iran) ──────────────────
-  const [activeTab, setActiveTab] = useState("thesis");
+  const [activeTab, setActiveTab] = useState("watchlist");
   const [priceStatus, setPriceStatus] = useState("loading");
   const [historyBuffer, setHistoryBuffer] = useState(createHistoryBuffer);
 
   // ── Derived: active config, signals, content, terms ─────────
-  const activeConfig = mode === "market" && marketData
-    ? marketData.config
+  const activeConfig = mode === "market"
+    ? (marketData ? marketData.config : defaultMarketConfig)
     : domainConfig;
 
   const activeContent = mode === "market" ? marketContent : domainContent;
@@ -295,8 +300,14 @@ export default function App() {
     ? (marketData ? "computed" : "idle")
     : priceStatus;
 
+  // ── Watchlist ticker selection handler ─────────────────────
+  const handleWatchlistSelect = useCallback((t) => {
+    handleTickerSearch(t);
+  }, [handleTickerSearch]);
+
   // ── Tab content ─────────────────────────────────────────────
   const tabContent = {
+    watchlist: <WatchlistView onSelectTicker={handleWatchlistSelect} backendUrl="" />,
     thesis: <ThesisView config={activeConfig} content={activeContent} terms={activeTerms} />,
     nodes: <NodesView config={activeConfig} content={activeContent} terms={activeTerms} />,
     patterns: <PatternsView config={activeConfig} content={activeContent} terms={activeTerms} signals={signals} transitionIntensity={transitionIntensity} />,
@@ -304,48 +315,6 @@ export default function App() {
     monitor: <SignalMonitor config={activeConfig} terms={activeTerms} signals={signals} coherence={coherence} priceStatus={activePriceStatus} activityState={activityState} transitionIntensity={transitionIntensity} giniTrajectory={giniTrajectory} />,
     feed: <LiveFeed config={activeConfig} terms={activeTerms} />,
   };
-
-  // ── Market mode: empty state when no ticker searched yet ────
-  const marketEmptyState = mode === "market" && !marketData && !tickerLoading && (
-    <div style={{
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      justifyContent: "center",
-      padding: "120px 32px",
-      textAlign: "center",
-    }}>
-      <div style={{
-        fontFamily: FONTS.heading,
-        fontSize: 48,
-        color: COLORS.gold,
-        opacity: 0.15,
-        fontWeight: 700,
-        marginBottom: 24,
-        letterSpacing: -1,
-      }}>
-        JTECH AI
-      </div>
-      <p style={{
-        fontSize: 15,
-        color: COLORS.textDim,
-        lineHeight: 1.7,
-        maxWidth: 480,
-        margin: "0 0 8px",
-      }}>
-        Enter a ticker symbol above to run topological regime analysis.
-        The engine transforms 12 technical indicators into sigma-normalized
-        severity signals and classifies the regime from signal geometry.
-      </p>
-      <p style={{
-        fontSize: 12,
-        color: COLORS.textMuted,
-        margin: 0,
-      }}>
-        Requires backend: python hf-proxy/app.py
-      </p>
-    </div>
-  );
 
   return (
     <div style={{ minHeight: "100vh", background: COLORS.bg, color: COLORS.text, fontFamily: FONTS.body }}>
@@ -367,7 +336,7 @@ export default function App() {
         onModeToggle={handleModeToggle}
       />
       <div style={{ maxWidth: 1400, margin: "0 auto" }}>
-        {marketEmptyState || tabContent[activeTab] || (
+        {tabContent[activeTab] || (
           <div style={{ padding: 32, color: COLORS.textDim }}>Tab not configured.</div>
         )}
       </div>
