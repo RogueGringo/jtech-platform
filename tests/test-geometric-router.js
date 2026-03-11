@@ -7,7 +7,7 @@
  * Run: node tests/test-geometric-router.js
  */
 
-import { selectTier, TIER_CONFIG, buildBrief, buildPrompt } from "../src/engine/geometric-router.js";
+import { selectTier, TIER_CONFIG, buildBrief, buildPrompt, routeAndArticulate } from "../src/engine/geometric-router.js";
 
 let pass = 0, fail = 0;
 function assert(label, condition) {
@@ -137,6 +137,20 @@ console.log("\n=== LM Studio Client: Model Selection ===\n");
 
 assert("generateIntelBrief is exported", typeof generateIntelBrief === "function");
 assert("generateIntelBrief accepts options with model param", generateIntelBrief.length <= 2);
+
+console.log("\n=== Geometric Router: Orchestrator ===\n");
+
+// Test with no LLM available (graceful degradation)
+const result = await routeAndArticulate(engineOutput, { trajectory: "ACCELERATING", rho1: 0.86 });
+
+assert("routeAndArticulate returns brief", typeof result === "object");
+assert("result has fallbackNarrative", typeof result.fallbackNarrative === "string");
+assert("result.narrative is string or null", result.narrative === null || typeof result.narrative === "string");
+assert("result has narrativeMeta", result.narrativeMeta !== undefined);
+assert("fallback contains regime label", result.fallbackNarrative.includes("BOUNDARY LAYER"));
+assert("fallback contains mean value", result.fallbackNarrative.includes("2.41"));
+assert("fallback contains Gini value", result.fallbackNarrative.includes("0.47"));
+assert("fallback contains trajectory", result.fallbackNarrative.includes("ACCELERATING"));
 
 console.log(`\n${pass}/${pass + fail} passed`);
 process.exit(fail > 0 ? 1 : 0);

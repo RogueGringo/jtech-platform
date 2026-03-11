@@ -13,6 +13,8 @@
  */
 
 import { TOPO_TIER3, TOPO_BRIEFING, TOPO_ANALYST } from "./system-prompts.js";
+import { generateIntelBrief, checkLMStudio } from "./lm-studio-client.js";
+import { createCloudClient } from "./cloud-client.js";
 
 // ================================================================
 // TIER CONFIGURATION
@@ -199,4 +201,70 @@ export function buildPrompt(brief) {
   lines.push("You must reference at least 2 measured values. Do not speculate beyond the data above.");
 
   return { system, user: lines.join("\n") };
+}
+
+// ================================================================
+// MODEL MAPPING — tier to LM Studio model identifier
+// ================================================================
+
+const LOCAL_MODELS = {
+  3: "lmstudio-community/ministral-3b",
+  2: "lmstudio-community/qwen3-8b",
+};
+
+// ================================================================
+// ROUTING ORCHESTRATOR — deterministic brief + async LLM enhancement
+// ================================================================
+
+/**
+ * Build brief, route to LLM tier, attempt narrative generation.
+ * Returns immediately with fallback; narrative populated if LLM responds.
+ *
+ * @param {Object} engineOutput - From market-data.js pipeline
+ * @param {Object} [extras] - { trajectory, rho1 }
+ * @param {Object} [options] - { lmStudioHost, timeoutMs, cloudClient }
+ * @returns {Promise<Object>} Brief with narrative (or fallback)
+ */
+export async function routeAndArticulate(engineOutput, extras = {}, options = {}) {
+  const brief = buildBrief(engineOutput, extras);
+  const prompt = buildPrompt(brief);
+  const config = TIER_CONFIG[brief.tier];
+
+  // Attempt LLM articulation based on tier
+  try {
+    let llmResult;
+
+    if (brief.tier === 1) {
+      // Tier 1: Cloud API
+      const cloud = options.cloudClient || createCloudClient();
+      if (cloud.isAvailable()) {
+        llmResult = await cloud.generate(prompt, config);
+      }
+    } else {
+      // Tier 2/3: Local LM Studio
+      const model = LOCAL_MODELS[brief.tier] || "local-model";
+      llmResult = await generateIntelBrief(prompt, {
+        model,
+        temperature: config.temperature,
+        maxTokens: config.maxTokens,
+        timeoutMs: options.timeoutMs || 5000,
+        host: options.lmStudioHost,
+      });
+    }
+
+    if (llmResult && llmResult.content && !llmResult.error) {
+      brief.narrative = llmResult.content;
+      brief.narrativeMeta = {
+        tier: brief.tier,
+        model: llmResult.model || LOCAL_MODELS[brief.tier] || "cloud",
+        provider: llmResult.provider || "lm-studio",
+        latencyMs: llmResult.latencyMs || 0,
+        tokensUsed: llmResult.tokensUsed || llmResult.tokens || 0,
+      };
+    }
+  } catch {
+    // Graceful degradation — fallback narrative stays
+  }
+
+  return brief;
 }
