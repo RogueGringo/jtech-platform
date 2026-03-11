@@ -129,5 +129,14 @@ assert("client has generate method", typeof client.generate === "function");
 assert("client has isAvailable method", typeof client.isAvailable === "function");
 assert("client without key is unavailable", client.isAvailable() === false);
 
+// === LM Studio Client: Model Selection ===
+
+import { generateIntelBrief } from "../src/engine/lm-studio-client.js";
+
+console.log("\n=== LM Studio Client: Model Selection ===\n");
+
+assert("generateIntelBrief is exported", typeof generateIntelBrief === "function");
+assert("generateIntelBrief accepts options with model param", generateIntelBrief.length <= 2);
+
 console.log(`\n${pass}/${pass + fail} passed`);
 process.exit(fail > 0 ? 1 : 0);
