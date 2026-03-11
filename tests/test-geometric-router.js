@@ -116,5 +116,18 @@ const stableBrief = buildBrief(
 const tier3Prompt = buildPrompt(stableBrief);
 assert("Tier 3 prompt mentions 'plain English'", tier3Prompt.user.includes("plain English"));
 
+// === Cloud Client: Structure ===
+
+import { createCloudClient } from "../src/engine/cloud-client.js";
+
+console.log("\n=== Cloud Client: Structure ===\n");
+
+// Without API key, client should exist but indicate unavailability
+const client = createCloudClient();
+assert("createCloudClient returns object", typeof client === "object");
+assert("client has generate method", typeof client.generate === "function");
+assert("client has isAvailable method", typeof client.isAvailable === "function");
+assert("client without key is unavailable", client.isAvailable() === false);
+
 console.log(`\n${pass}/${pass + fail} passed`);
 process.exit(fail > 0 ? 1 : 0);
