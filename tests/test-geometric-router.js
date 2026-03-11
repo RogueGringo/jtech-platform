@@ -7,7 +7,7 @@
  * Run: node tests/test-geometric-router.js
  */
 
-import { selectTier, TIER_CONFIG } from "../src/engine/geometric-router.js";
+import { selectTier, TIER_CONFIG, buildBrief } from "../src/engine/geometric-router.js";
 
 let pass = 0, fail = 0;
 function assert(label, condition) {
@@ -42,6 +42,54 @@ assert("Tier 3 maxTokens = 100", TIER_CONFIG[3].maxTokens === 100);
 assert("Tier 2 maxTokens = 200", TIER_CONFIG[2].maxTokens === 200);
 assert("Tier 1 maxTokens = 300", TIER_CONFIG[1].maxTokens === 300);
 assert("Tier 3 temperature = 0.1", TIER_CONFIG[3].temperature === 0.1);
+
+console.log("\n=== Geometric Router: Brief Builder ===\n");
+
+const mockSignals = [
+  { id: "mkt_rsi", sigma: -2.8, category: "condition", severity: "critical" },
+  { id: "mkt_volratio", sigma: 1.6, category: "flow", severity: "high" },
+  { id: "mkt_sma50", sigma: 0.4, category: "price", severity: "watch" },
+  { id: "mkt_atr", sigma: 1.2, category: "capacity", severity: "moderate" },
+];
+
+const engineOutput = {
+  ticker: "SPY",
+  regime: { label: "BOUNDARY LAYER" },
+  gini: 0.47,
+  mean: 2.41,
+  coherence: 72,
+  signals: mockSignals,
+  entropy: 1.85,
+  primeDensity: 0.25,
+  dissolutionRate: 0.75,
+  propagationRate: 0.25,
+};
+
+const brief = buildBrief(engineOutput, { trajectory: "ACCELERATING", rho1: 0.86 });
+
+// Structure checks
+assert("brief has ticker", brief.ticker === "SPY");
+assert("brief has regime string", brief.regime === "BOUNDARY LAYER");
+assert("brief has tier", typeof brief.tier === "number");
+assert("brief has metrics object", typeof brief.metrics === "object");
+assert("brief.metrics.mean = 2.41", brief.metrics.mean === 2.41);
+assert("brief.metrics.gini = 0.47", brief.metrics.gini === 0.47);
+assert("brief.metrics.coherence = 72", brief.metrics.coherence === 72);
+assert("brief.metrics.rho1 = 0.86", brief.metrics.rho1 === 0.86);
+
+// Top 3 signals sorted by |sigma|
+assert("brief has top 3 signals", brief.signals.length === 3);
+assert("top signal is mkt_rsi (|σ|=2.8)", brief.signals[0].id === "mkt_rsi");
+assert("2nd signal is mkt_volratio (|σ|=1.6)", brief.signals[1].id === "mkt_volratio");
+
+// Narrative fields
+assert("brief has fallbackNarrative", typeof brief.fallbackNarrative === "string");
+assert("brief.narrative starts null", brief.narrative === null);
+assert("brief.narrativeMeta starts null", brief.narrativeMeta === null);
+assert("brief has timestamp", typeof brief.timestamp === "string");
+
+// Tier assignment
+assert("Gini 0.47 → Tier 1", brief.tier === 1);
 
 console.log(`\n${pass}/${pass + fail} passed`);
 process.exit(fail > 0 ? 1 : 0);
