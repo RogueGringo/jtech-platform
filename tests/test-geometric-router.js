@@ -7,7 +7,7 @@
  * Run: node tests/test-geometric-router.js
  */
 
-import { selectTier, TIER_CONFIG, buildBrief } from "../src/engine/geometric-router.js";
+import { selectTier, TIER_CONFIG, buildBrief, buildPrompt } from "../src/engine/geometric-router.js";
 
 let pass = 0, fail = 0;
 function assert(label, condition) {
@@ -90,6 +90,31 @@ assert("brief has timestamp", typeof brief.timestamp === "string");
 
 // Tier assignment
 assert("Gini 0.47 → Tier 1", brief.tier === 1);
+
+console.log("\n=== Geometric Router: Prompt Builder ===\n");
+
+const promptResult = buildPrompt(brief);
+
+// Structure
+assert("buildPrompt returns { system, user }", typeof promptResult.system === "string" && typeof promptResult.user === "string");
+
+// User prompt contains measured invariants
+assert("user prompt contains ticker", promptResult.user.includes("SPY"));
+assert("user prompt contains regime", promptResult.user.includes("BOUNDARY LAYER"));
+assert("user prompt contains mean", promptResult.user.includes("2.41"));
+assert("user prompt contains gini", promptResult.user.includes("0.47"));
+assert("user prompt contains 'do not recalculate'", promptResult.user.toLowerCase().includes("do not recalculate"));
+
+// Tier-specific task prompt
+assert("Tier 1 prompt mentions 'conflicting vectors'", promptResult.user.includes("conflicting vectors"));
+
+// Tier 3 prompt check
+const stableBrief = buildBrief(
+  { ...engineOutput, gini: 0.05, regime: { label: "STABLE" } },
+  { trajectory: "STABLE", rho1: 0.12 }
+);
+const tier3Prompt = buildPrompt(stableBrief);
+assert("Tier 3 prompt mentions 'plain English'", tier3Prompt.user.includes("plain English"));
 
 console.log(`\n${pass}/${pass + fail} passed`);
 process.exit(fail > 0 ? 1 : 0);

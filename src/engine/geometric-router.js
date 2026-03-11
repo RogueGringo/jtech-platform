@@ -12,6 +12,8 @@
  * Author: mr.white@jtech.ai + Claude Code
  */
 
+import { TOPO_TIER3, TOPO_BRIEFING, TOPO_ANALYST } from "./system-prompts.js";
+
 // ================================================================
 // TIER CONFIGURATION
 // ================================================================
@@ -143,4 +145,58 @@ function buildFallbackNarrative(regime, trajectory, metrics, signals) {
 
   narrative += ` Forward trajectory: ${trajectory}.`;
   return narrative;
+}
+
+// ================================================================
+// PROMPT BUILDER — Fill-in-the-Blank constraint prompts
+// ================================================================
+
+const SYSTEM_PROMPTS = {
+  3: TOPO_TIER3,
+  2: TOPO_BRIEFING,
+  1: TOPO_ANALYST,
+};
+
+/**
+ * Build the tier-specific { system, user } prompt from a brief.
+ *
+ * @param {Object} brief - From buildBrief()
+ * @returns {{ system: string, user: string }}
+ */
+export function buildPrompt(brief) {
+  const system = SYSTEM_PROMPTS[brief.tier] || SYSTEM_PROMPTS[3];
+  const config = TIER_CONFIG[brief.tier] || TIER_CONFIG[3];
+
+  const top = brief.signals[0];
+  const lines = [
+    "MEASURED INVARIANTS (do not recalculate, do not contradict):",
+    `  Ticker:       ${brief.ticker}`,
+    `  Regime:       ${brief.regime}`,
+    `  Trajectory:   ${brief.trajectory}`,
+    `  Mean |σ|:     ${brief.metrics.mean.toFixed(2)}`,
+    `  Gini:         ${brief.metrics.gini.toFixed(2)}`,
+    `  Coherence:    ${brief.metrics.coherence}%`,
+  ];
+
+  if (brief.metrics.rho1 !== null) {
+    lines.push(`  Lag-1 ρ₁:     ${brief.metrics.rho1.toFixed(2)}`);
+  }
+
+  if (top) {
+    lines.push(`  Top Signal:   ${top.category} (${top.severity}, σ=${top.sigma.toFixed(1)})`);
+  }
+
+  if (brief.signals.length > 1) {
+    lines.push("");
+    lines.push("ALL REPORTED SIGNALS:");
+    for (const s of brief.signals) {
+      lines.push(`  ${s.id}: σ=${s.sigma.toFixed(2)}, ${s.category}, ${s.severity}`);
+    }
+  }
+
+  lines.push("");
+  lines.push(`YOUR TASK: ${config.taskPrompt}`);
+  lines.push("You must reference at least 2 measured values. Do not speculate beyond the data above.");
+
+  return { system, user: lines.join("\n") };
 }
