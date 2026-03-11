@@ -1,1 +1,1 @@
-# Valor Energy Partners — Zero-Setup Launcher
+# JtechAi — Zero-Setup Launcher

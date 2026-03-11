@@ -1,0 +1,98 @@
+[
+  {
+    "domain": "college_physics",
+    "question": "The quantum efficiency of a photon detector is 0.1. If 100 photons are sent into the detector, one after the other, the detector will detect photons"
+  },
+  {
+    "domain": "college_physics",
+    "question": "White light is normally incident on a puddle of water (index of refraction 1.33). A thin (500 nm) layer of oil (index of refraction 1.5) floats on the surface of the puddle. Of the following, the most strongly reflected wavelength is"
+  },
+  {
+    "domain": "college_physics",
+    "question": "Which of the following is true about any system that undergoes a reversible thermodynamic process?"
+  },
+  {
+    "domain": "college_physics",
+    "question": "The best type of laser with which to do spectroscopy over a range of visible wavelengths is"
+  },
+  {
+    "domain": "college_physics",
+    "question": "Excited states of the helium atom can be characterized as para- (antiparallel electron spins) and ortho- (parallel electron spins). The observation that an ortho- state has lower energy than the corresponding para- state can be understood in terms of which of the following?"
+  },
+  {
+    "domain": "college_physics",
+    "question": "Which of the following gives the total spin quantum number of the electrons in the ground state of neutral nitrogen (Z = 7)?"
+  },
+  {
+    "domain": "college_physics",
+    "question": "Consider three identical, ideal capacitors. The first capacitor is charged to a voltage and then disconnected from the battery. The other two capacitors, initially uncharged and connected in series, are then connected across the first capacitor. What is the final voltage on the first capacitor?"
+  },
+  {
+    "domain": "college_physics",
+    "question": "Protons used in cancer therapy are typically accelerated to about 0.6c. How much work must be done on a particle of mass m in order for it to reach this speed, assuming it starts at rest?"
+  },
+  {
+    "domain": "college_chemistry",
+    "question": "The rate, r, of a zero-order chemical reaction A → B can be expressed as which of the following?"
+  },
+  {
+    "domain": "college_chemistry",
+    "question": "Infrared (IR) spectroscopy is useful for determining certain aspects of the structure of organic molecules because"
+  },
+  {
+    "domain": "college_chemistry",
+    "question": "What is the maximum number of phases that can be at equilibrium with each other in a three component mixture?"
+  },
+  {
+    "domain": "college_chemistry",
+    "question": "When the following equation is balanced, which of the following is true?\n__ MnO4− + __ I− + __ H+ <-> __ Mn2+ + __ IO3− + __ H2O"
+  },
+  {
+    "domain": "college_chemistry",
+    "question": "The equation ΔH = ΔU + PΔV is applicable"
+  },
+  {
+    "domain": "college_chemistry",
+    "question": "Nitronyl nitroxides are stable radicals in which the unpaired electron is coupled to two equivalent nitrogen nuclei. How many lines will appear in the EPR spectrum of a solution of a rigid nitronyl nitroxide diradical with J << a?"
+  },
+  {
+    "domain": "college_chemistry",
+    "question": "Cobalt-60 is used in the radiation therapy of cancer and can be produced by bombardment of cobalt-59 with which of the following?"
+  },
+  {
+    "domain": "college_chemistry",
+    "question": "Which of the following is required for both paramagnetism and ferromagnetism?"
+  },
+  {
+    "domain": "college_biology",
+    "question": "Based on the characteristic population curves that result from plotting population growth of a species, the most effective means of controlling the mosquito population is to"
+  },
+  {
+    "domain": "college_biology",
+    "question": "A frameshift mutation is created when"
+  },
+  {
+    "domain": "college_biology",
+    "question": "To prevent desiccation and injury, the embryos of terrestrial vertebrates are encased within a fluid secreted by the"
+  },
+  {
+    "domain": "college_biology",
+    "question": "Which of the following is a second messenger that stimulates release of calcium ions into the cytoplasm?"
+  },
+  {
+    "domain": "college_biology",
+    "question": "Synthesis of an RNA/DNA hybrid from a single-stranded RNA template requires"
+  },
+  {
+    "domain": "college_biology",
+    "question": "In order for the Hardy-Weinberg law to operate with respect to a population of organisms, each of the following conditions must be met EXCEPT:"
+  },
+  {
+    "domain": "college_biology",
+    "question": "The Barr body found within female mammalian cells' nuclei is an example of"
+  },
+  {
+    "domain": "college_biology",
+    "question": "Which of the following is NOT a source of atmospheric carbon?"
+  }
+]

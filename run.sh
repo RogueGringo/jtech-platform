@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ╔══════════════════════════════════════════════════════════════════╗
-# ║  VALOR ENERGY PARTNERS — Zero-Setup Launcher                   ║
+# ║  JTECH AI — Zero-Setup Launcher                                ║
 # ║  Clone → Run. Nothing else required.                           ║
 # ╚══════════════════════════════════════════════════════════════════╝
 set -euo pipefail
@@ -16,14 +16,14 @@ BOLD='\033[1m'; DIM='\033[2m'; RESET='\033[0m'
 banner() {
     echo ""
     echo -e "${CYAN}${BOLD}"
-    echo "  ██╗   ██╗ █████╗ ██╗      ██████╗ ██████╗ "
-    echo "  ██║   ██║██╔══██╗██║     ██╔═══██╗██╔══██╗"
-    echo "  ██║   ██║███████║██║     ██║   ██║██████╔╝"
-    echo "  ╚██╗ ██╔╝██╔══██║██║     ██║   ██║██╔══██╗"
-    echo "   ╚████╔╝ ██║  ██║███████╗╚██████╔╝██║  ██║"
-    echo "    ╚═══╝  ╚═╝  ╚═╝╚══════╝ ╚═════╝ ╚═╝  ╚═╝"
+    echo "       ██╗████████╗███████╗ ██████╗██╗  ██╗     █████╗ ██╗"
+    echo "       ██║╚══██╔══╝██╔════╝██╔════╝██║  ██║    ██╔══██╗██║"
+    echo "       ██║   ██║   █████╗  ██║     ███████║    ███████║██║"
+    echo "  ██   ██║   ██║   ██╔══╝  ██║     ██╔══██║    ██╔══██║██║"
+    echo "  ╚█████╔╝   ██║   ███████╗╚██████╗██║  ██║    ██║  ██║██║"
+    echo "   ╚════╝    ╚═╝   ╚══════╝ ╚═════╝╚═╝  ╚═╝    ╚═╝  ╚═╝╚═╝"
     echo -e "${RESET}"
-    echo -e "${DIM}  Strategic Intelligence Brief — Strait of Hormuz${RESET}"
+    echo -e "${DIM}  All-Source Intelligence Platform${RESET}"
     echo -e "${DIM}  Effects-Based Analysis Engine${RESET}"
     echo ""
 }

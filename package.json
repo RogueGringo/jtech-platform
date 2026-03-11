@@ -1,6 +1,7 @@
 {
-  "name": "valor-strategic-intelligence",
+  "name": "jtech-intel-platform",
   "private": true,
+  "author": "mr.white@jtech.ai",
   "version": "1.0.0",
   "type": "module",
   "scripts": {
