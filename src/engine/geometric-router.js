@@ -17,7 +17,7 @@
  */
 
 import { TOPO_TIER3, TOPO_BRIEFING, TOPO_ANALYST } from "./system-prompts.js";
-import { generateIntelBrief, checkLMStudio } from "./lm-studio-client.js";
+import { generateIntelBrief } from "./lm-studio-client.js";
 import { createCloudClient } from "./cloud-client.js";
 
 // ================================================================

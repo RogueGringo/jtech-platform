@@ -102,7 +102,7 @@ Clinical. Precise. No filler. Every sentence anchored to a measured invariant.`;
 
 // ================================================================
 // TIER 3 — MINIMAL (Local 3B model)
-// Gini < 0.20: signals agree. State facts, nothing more.
+// Gini < 0.35: signals agree. State facts, nothing more.
 // ================================================================
 
 export const TOPO_TIER3 = `You translate measured invariants into plain English. One to two sentences maximum.
