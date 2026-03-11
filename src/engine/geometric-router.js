@@ -2,9 +2,13 @@
  * Geometric Router — Topology Dictates Compute
  *
  * Maps the Gini coefficient (signal disagreement) to an LLM tier:
- *   Tier 3 (Gini < 0.20): Local 3B model — trivial articulation
- *   Tier 2 (Gini 0.20-0.40): Local 8B model — moderate synthesis
- *   Tier 1 (Gini >= 0.40): Cloud API — complex conflict resolution
+ *   Tier 3 (Gini < 0.35): Local 3B model — trivial articulation
+ *   Tier 2 (Gini 0.35-0.55): Local 8B model — moderate synthesis
+ *   Tier 1 (Gini >= 0.55): Cloud API — complex conflict resolution
+ *
+ * Thresholds calibrated for continuous |σ| severity scale (Cycle 6).
+ * With 12 continuous indicators, ambient Gini centers ~0.30-0.40,
+ * so boundaries are shifted up from the original discrete-rank values.
  *
  * Also builds the deterministic brief object and fallback narrative.
  * The LLM is a progressive enhancement, not a dependency.
@@ -24,22 +28,22 @@ export const TIER_CONFIG = {
   3: {
     name: "LOCAL_3B",
     giniMin: 0,
-    giniMax: 0.20,
+    giniMax: 0.35,
     maxTokens: 100,
     temperature: 0.1,
     taskPrompt: "State the regime and trajectory in plain English. One to two sentences maximum.",
   },
   2: {
     name: "LOCAL_8B",
-    giniMin: 0.20,
-    giniMax: 0.40,
+    giniMin: 0.35,
+    giniMax: 0.55,
     maxTokens: 200,
     temperature: 0.15,
     taskPrompt: "Synthesize the invariants into a 2-3 sentence assessment. Note any signal divergence between categories.",
   },
   1: {
     name: "CLOUD_API",
-    giniMin: 0.40,
+    giniMin: 0.55,
     giniMax: 1.0,
     maxTokens: 300,
     temperature: 0.2,
@@ -59,8 +63,8 @@ export const TIER_CONFIG = {
  */
 export function selectTier(gini) {
   if (typeof gini !== "number" || isNaN(gini)) return 3;
-  if (gini >= 0.40) return 1;
-  if (gini >= 0.20) return 2;
+  if (gini >= 0.55) return 1;
+  if (gini >= 0.35) return 2;
   return 3;
 }
 
@@ -131,7 +135,7 @@ export function buildBrief(engineOutput, extras = {}) {
 function buildFallbackNarrative(regime, trajectory, metrics, signals) {
   const top = signals[0];
   const stressLevel = metrics.mean > 1.8 ? "elevated" : "low";
-  const disagreement = metrics.gini > 0.4 ? "high" : metrics.gini > 0.2 ? "moderate" : "low";
+  const disagreement = metrics.gini > 0.55 ? "high" : metrics.gini > 0.35 ? "moderate" : "low";
 
   let narrative = `${regime} regime detected. Mean |σ| ${metrics.mean.toFixed(2)} `
     + `with Gini ${metrics.gini.toFixed(2)} indicates ${stressLevel} stress `

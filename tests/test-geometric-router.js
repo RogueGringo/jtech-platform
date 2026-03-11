@@ -17,19 +17,19 @@ function assert(label, condition) {
 
 console.log("\n=== Geometric Router: Tier Selection ===\n");
 
-// Tier 3: Gini < 0.20
+// Tier 3: Gini < 0.35 (calibrated for continuous |σ|)
 assert("Gini 0.00 → Tier 3", selectTier(0.00) === 3);
-assert("Gini 0.10 → Tier 3", selectTier(0.10) === 3);
-assert("Gini 0.19 → Tier 3", selectTier(0.19) === 3);
+assert("Gini 0.20 → Tier 3", selectTier(0.20) === 3);
+assert("Gini 0.34 → Tier 3", selectTier(0.34) === 3);
 
-// Tier 2: Gini 0.20-0.40
-assert("Gini 0.20 → Tier 2", selectTier(0.20) === 2);
-assert("Gini 0.30 → Tier 2", selectTier(0.30) === 2);
-assert("Gini 0.39 → Tier 2", selectTier(0.39) === 2);
+// Tier 2: Gini 0.35-0.55
+assert("Gini 0.35 → Tier 2", selectTier(0.35) === 2);
+assert("Gini 0.45 → Tier 2", selectTier(0.45) === 2);
+assert("Gini 0.54 → Tier 2", selectTier(0.54) === 2);
 
-// Tier 1: Gini >= 0.40
-assert("Gini 0.40 → Tier 1", selectTier(0.40) === 1);
-assert("Gini 0.60 → Tier 1", selectTier(0.60) === 1);
+// Tier 1: Gini >= 0.55
+assert("Gini 0.55 → Tier 1", selectTier(0.55) === 1);
+assert("Gini 0.70 → Tier 1", selectTier(0.70) === 1);
 assert("Gini 1.00 → Tier 1", selectTier(1.00) === 1);
 
 // Edge cases
@@ -88,8 +88,8 @@ assert("brief.narrative starts null", brief.narrative === null);
 assert("brief.narrativeMeta starts null", brief.narrativeMeta === null);
 assert("brief has timestamp", typeof brief.timestamp === "string");
 
-// Tier assignment
-assert("Gini 0.47 → Tier 1", brief.tier === 1);
+// Tier assignment (0.35-0.55 = Tier 2 with calibrated thresholds)
+assert("Gini 0.47 → Tier 2", brief.tier === 2);
 
 console.log("\n=== Geometric Router: Prompt Builder ===\n");
 
@@ -105,8 +105,8 @@ assert("user prompt contains mean", promptResult.user.includes("2.41"));
 assert("user prompt contains gini", promptResult.user.includes("0.47"));
 assert("user prompt contains 'do not recalculate'", promptResult.user.toLowerCase().includes("do not recalculate"));
 
-// Tier-specific task prompt
-assert("Tier 1 prompt mentions 'conflicting vectors'", promptResult.user.includes("conflicting vectors"));
+// Tier-specific task prompt (Gini 0.47 = Tier 2 after recalibration)
+assert("Tier 2 prompt mentions 'signal divergence'", promptResult.user.includes("signal divergence"));
 
 // Tier 3 prompt check
 const stableBrief = buildBrief(
