@@ -4,10 +4,11 @@
  * Connects the FastAPI backend endpoints (/api/historical, /api/metadata,
  * /api/prices) to the market adapter and engine pipeline.
  *
- * Three entry points:
+ * Four entry points:
  *   analyzeTickerFromBackend(ticker, options)  — full live pipeline
  *   analyzeTickerFromCSV(ticker, ohlcv, technicals, metadata, baselineWindow) — offline/test
  *   fetchTickerPrice(ticker, backendUrl)        — live price only
+ *   analyzeAndBrief(ticker, ohlcv, technicals, metadata, baselineWindow, routingOptions) — full pipeline + geometric routing + LLM brief
  *
  * Author: mr.white@jtech.ai + Claude Code
  */
@@ -15,6 +16,7 @@
 import { createMarketConfig } from "../domains/market/config-factory.js";
 import { marketToSignals, MARKET_CATEGORIES } from "../adapters/market-adapter.js";
 import { computeCoherence } from "./signals.js";
+import { routeAndArticulate } from "./geometric-router.js";
 
 // ================================================================
 // BACKEND KEY -> ADAPTER KEY MAPPING
@@ -244,6 +246,33 @@ export async function fetchTickerPrice(ticker, backendUrl = "") {
   }
 
   throw new Error(`[market-data] No price data available for ${ticker}`);
+}
+
+// ================================================================
+// ENTRY 4: Full pipeline + Geometric Routing + LLM brief
+// ================================================================
+
+/**
+ * Full analysis pipeline with geometric routing and LLM articulation.
+ * Returns the engine result plus an intelligence brief with narrative.
+ *
+ * @param {string} ticker - Ticker symbol
+ * @param {Object[]} ohlcv - OHLCV bars
+ * @param {Object} technicals - Pre-computed technicals (or null)
+ * @param {Object} [metadata={}] - Ticker metadata
+ * @param {number} [baselineWindow=60] - Rolling sigma baseline
+ * @param {Object} [routingOptions={}] - { lmStudioHost, timeoutMs, cloudClient }
+ * @returns {Promise<Object>} { ...engineResult, brief }
+ */
+export async function analyzeAndBrief(ticker, ohlcv, technicals, metadata = {}, baselineWindow = 60, routingOptions = {}) {
+  const engineResult = runPipeline(ticker, ohlcv, technicals, metadata, baselineWindow);
+
+  const brief = await routeAndArticulate(engineResult, {
+    trajectory: "N/A",  // TODO: compute from Gini history in future cycle
+    rho1: null,         // TODO: compute from regime history in future cycle
+  }, routingOptions);
+
+  return { ...engineResult, brief };
 }
 
 // ================================================================
