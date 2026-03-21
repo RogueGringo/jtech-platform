@@ -11,7 +11,7 @@ pinned: false
 
 ### Configurable Effects-Based Analysis Engine
 
-**[Open the Dashboard](https://roguegringo.github.io/IntelBrief-Hormuz-Iran/)**
+**[Open the Dashboard] (https://roguegringo.github.io/IntelBrief-Hormuz-Iran/)** <Offline due to IP temporarily.
 
 ---
 
